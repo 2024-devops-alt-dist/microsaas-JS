@@ -1,7 +1,7 @@
 {
-  "name": "",
+  "name": "suprise",
   "version": "1.0.0",
-  "description": "",
+  "description": "Juliette's MicroSaaS's project",
   "main": "index.js",
   "type": "module",
   "license": "AGPL-version-3.0",
@@ -18,9 +18,9 @@
   "bugs": "",
   "keywords": [],
   "author": {
-    "name": "",
-    "email": "",
-    "url": ""
+    "name": "Juliette Suc",
+    "email": "juliette.huguier.suc@gmail.com",
+    "url": "https://github.com/Juliette-Huguier-Suc"
   },
   "contributors": [],
   "scripts": {

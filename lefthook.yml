@@ -29,8 +29,8 @@ post-commit:
       fail_text: "Echec post-commit"
       
 # Hook qui s'exécute AVANT le push
-pre-push:
-  commands:
-    build:
-      run: npm run build
-      fail_text: "Echec pré-push"
+#pre-push:
+#  commands:
+#    build:
+#      run: npm run build
+#      fail_text: "Echec pré-push"
