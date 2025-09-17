@@ -1,0 +1,44 @@
+{
+  "name": "suprise",
+  "version": "1.0.0",
+  "description": "Juliette's MicroSaaS's project",
+  "main": "index.js",
+  "type": "module",
+  "license": "AGPL-version-3.0",
+  "private": false,
+  "engines": {
+    "node": ">= 14.0.0",
+    "npm": ">= 6.0.0"
+  },
+  "homepage": "",
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "bugs": "",
+  "keywords": [],
+  "author": {
+    "name": "Juliette Suc",
+    "email": "juliette.huguier.suc@gmail.com",
+    "url": "https://github.com/Juliette-Huguier-Suc"
+  },
+  "contributors": [],
+  "scripts": {
+    "dev": "",
+    "test": ""
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^19.8.1",
+    "@commitlint/config-conventional": "^19.8.1",
+    "@eslint/js": "^9.35.0",
+    "eslint": "^9.35.0",
+    "eslint-plugin-react": "^7.37.5",
+    "globals": "^16.4.0",
+    "jiti": "^2.5.1",
+    "lefthook": "^1.13.0",
+    "typescript-eslint": "^8.44.0"
+  },
+  "dependencies": {
+    "prettier": "^3.6.2"
+  }
+}
