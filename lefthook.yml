@@ -1,0 +1,36 @@
+# Hook qui s'exécute AVANT le commit
+pre-commit:
+  commands:
+    prettier:
+      glob: "*.{js,jsx,ts,tsx,css,md,json}"
+      run: npx prettier --write {staged_files}
+      stage_fixed: true  # ✨ La magie !
+      fail_text: "Echec pré-commit de prettier"
+
+
+    eslint:
+      glob: "*.{js,jsx,ts,tsx}"
+      run: npx eslint --fix {staged_files}
+      stage_fixed: true  # ✨ Re-ajoute les corrections au commit
+      fail_text: "Echec pré-commit de ESLint"
+
+# Message de commit
+commit-msg:
+  commands:
+    commitlint:
+      run: npx commitlint --edit {1}
+
+# Hook qui s'exécute APRÈS le commit réussi
+post-commit:
+  commands:
+    celebrate:
+      # Peut être n'importe quelle commande shell
+      run: echo "✅ Commit validé!"
+      fail_text: "Echec post-commit"
+      
+# Hook qui s'exécute AVANT le push
+pre-push:
+  commands:
+    build:
+      run: npm run build
+      fail_text: "Echec pré-push"
