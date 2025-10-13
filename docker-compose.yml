@@ -11,7 +11,7 @@ services:
       - ${DB_PORT}:${DB_PORT}
 
     volumes:
-          - suprise-backend-js:/var/lib/postgresql/data # Stockage des données
+          - surprise-backend-js:/var/lib/postgresql/data # Stockage des données
           - ./api/db-scripts:/docker-entrypoint-initdb.d/ # Chemin des scripts SQL pour l'initialisation de la base de données
 
   api:
@@ -29,7 +29,16 @@ services:
           DB_NAME: ${DB_NAME}
           PORT: 3000
         volumes:
-          - ./src:/app
+          - surprise-backend-js:/src/app
+
+  client:
+    build: ./client
+    ports:
+      - "5173:5173"
+    volumes:
+      - surprise-frontend-js:/src/app
+    command: npm run dev
 
 volumes:
-  suprise-backend-js:
+  surprise-backend-js:
+  surprise-frontend-js:
