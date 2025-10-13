@@ -4,9 +4,9 @@ import cors from "cors";
 const app = express();
 
 const corsOptions = {
-  origin: "http://localhost:5173", // Remplace par l'URL de ton front
-  methods: ["GET", "POST", "PUT", "DELETE"], // Méthodes autorisées
-  allowedHeaders: ["Content-Type", "Authorization"], // En-têtes autorisés
+  origin: "http://localhost:5173", // l'URL front
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"],
 };
 app.use(cors(corsOptions));
 
