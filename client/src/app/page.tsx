@@ -1,11 +1,61 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { Health } from "../entities";
+
 export default function Home() {
+  const [health, setHealth] = useState<Health[]>();
+  const [toggle, setToggle] = useState<boolean>(false);
+
+  useEffect(() => {
+    const fetchHealth = async () => {
+      const response = await fetch(`http://localhost:3000/api/v1/health`);
+      const res = await response.json();
+      setHealth(res.data);
+    };
+    fetchHealth();
+  }, [toggle]);
+
+  const changeToggleState = () => {
+    setToggle(!toggle);
+  };
+
   return (
-    <div className="">
+    <div className="p-5">
       <main className="flex flex-col justify-center items-center h-100">
-        <h1 className="p-3">Test de titre</h1>
-        <button className="bg-transparent hover:bg-blue-500 text-blue-700 font-semibold hover:text-white py-2 px-4 border border-blue-500 hover:border-transparent rounded">
-          Tester
-        </button>
+        <h1 className="mb-4 text-4xl font-extrabold leading-none tracking-tight text-gray-900 md:text-5xl lg:text-6xl ">
+          Surprise
+        </h1>
+        <p className="mb-6 text-lg font-normal text-gray-500 lg:text-xl sm:px-16 xl:px-48">
+          Une application dockerisée en Next.js, Node.js et Postgresql.
+        </p>
+        <a
+          href="#"
+          className="mt-3 mb-2 block max-w-sm p-6 bg-white border border-gray-200 rounded-lg shadow-sm hover:bg-gray-100"
+        >
+          <h5 className="mb-2 text-2xl font-bold tracking-tight text-gray-900">
+            Tester la connexion
+          </h5>
+          <p className="font-normal text-gray-700">
+            Pour voir si le backend et la base de données sont bien connectés,
+            cliquez sur le bouton ci-dessous.
+          </p>
+          <button
+            onClick={changeToggleState}
+            className="bg-transparent hover:bg-blue-500 text-blue-700 font-semibold hover:text-white py-2 px-4 border border-blue-500 hover:border-transparent rounded"
+          >
+            Tester
+          </button>
+          {toggle && health && health[0] && (
+            <div
+              className="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50"
+              role="alert"
+            >
+              <span className="font-medium">Succès !</span>
+              {health[0].name}
+            </div>
+          )}
+        </a>
       </main>
     </div>
   );
