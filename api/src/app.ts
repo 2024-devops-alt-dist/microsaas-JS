@@ -1,10 +1,13 @@
 import express from "express";
 import cors from "cors";
+import { env } from "process";
+
+const FRONTEND_PORT = env.FRONTEND_PORT || 5173;
 
 const app = express();
 
 const corsOptions = {
-  origin: "http://localhost:5173", // l'URL front
+  origin: `http://localhost:${FRONTEND_PORT}`, // l'URL front
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"],
 };

@@ -4,15 +4,15 @@ import app from "./app";
 import { pool } from "./db/config";
 import { env } from "process";
 
-const PORT = env.PORT || 3000;
+const API_PORT = env.API_PORT || 3000;
 
 pool
   .connect()
   .then(() => {
     console.log("Connexion à PostgreSQL réussie");
 
-    app.listen(PORT, () => {
-      console.log(`Server is running on http://localhost:${PORT}`);
+    app.listen(API_PORT, () => {
+      console.log(`Server is running on http://localhost:${API_PORT}`);
     });
   })
   .catch((err: Error) =>
