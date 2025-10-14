@@ -1,7 +1,7 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import { Health } from "../entities";
+const port = process.env.NEXT_PUBLIC_API_PORT || 3000;
 
 export default function Home() {
   const [health, setHealth] = useState<Health[]>();
@@ -27,7 +27,8 @@ export default function Home() {
           Surprise
         </h1>
         <p className="mb-6 text-lg font-normal text-gray-500 lg:text-xl sm:px-16 xl:px-48">
-          Une application dockerisée en Next.js, Node.js et Postgresql.
+          Une application dockerisée en Next.js, Node.js et Postgresql,
+          appellant le port {port} en backend.
         </p>
         <a
           href="#"
