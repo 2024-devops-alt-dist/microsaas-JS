@@ -2,20 +2,27 @@
 
 # Instructions de mise en place
 
-clonez le projet avec la commande suivante :
+Clonez le projet avec la commande suivante :
 
 `git clone https://github.com/2024-devops-alt-dist/microsaas-JS.git`
 
-Dans un IDE, aller dans le dossier api (cd api) et installer les dépendances avec la commande suivante :
+Créez un fichier .env à la racine du projet avec le contenu suivant :
+DB_HOST=db
+DB_USER=myuser
+DB_PASSWORD=mypassword123soleil
+DB_NAME=surprisedb
+DB_PORT=5432
+API_PORT=3000
 
-`npm install`
+Puis lancez la commande `docker compose up --build` dans le terminal.
 
-Aller dans le dossier client (cd ../client) et installer les dépendances avec la commande
+Dans un navigateur, aller sur http://localhost:5173/ pour accéder à l'affichage de la page. Cliquez sur le bouton pour tester la connection au back-end et à la base de données.
 
-`npm install`
+# Features
 
-Pour lancer le front, dans le dossier client, utiliser la commande
-
-`npm run dev`
-
-Dans un navigateur, aller sur http://localhost:3000/ pour accéder à l'affichage de la page
+- CommitLint pour vérifier la validité des commits.
+- GitHub Actions simples
+- Une base de données simple
+- Une route simple health dans l'api
+- Une requête du front pour récupérer l'endpoint health de l'api
+- Une page web pour tester la connexion à l'api
