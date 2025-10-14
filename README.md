@@ -6,13 +6,7 @@ Clonez le projet avec la commande suivante :
 
 `git clone https://github.com/2024-devops-alt-dist/microsaas-JS.git`
 
-Créez un fichier .env à la racine du projet avec le contenu suivant :
-DB_HOST=db
-DB_USER=myuser
-DB_PASSWORD=mypassword123soleil
-DB_NAME=surprisedb
-DB_PORT=5432
-API_PORT=3000
+Créez un fichier .env à la racine du projet avec le contenu suivant du .env.example.
 
 Puis lancez la commande `docker compose up --build` dans le terminal.
 
