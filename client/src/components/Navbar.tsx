@@ -1,16 +1,21 @@
+import Image from "next/image";
+
 export default function Navbar() {
   return (
-    <nav className="bg-white border-gray-200">
+    <nav className="bg-white border-gray-200 navbar">
       <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
         <a
           href="https://flowbite.com/"
           className="flex items-center space-x-3 rtl:space-x-reverse"
         >
-          <img
-            src="https://flowbite.com/docs/images/logo.svg"
+          <Image
+            src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/84/Gift_Flat_Icon_Vector.svg/2048px-Gift_Flat_Icon_Vector.svg.png"
             className="h-8"
-            alt="Flowbite Logo"
+            alt="Surprise Logo"
+            width={40}
+            height={40}
           />
+
           <span className="self-center text-2xl font-semibold whitespace-nowrap">
             Surprise
           </span>
@@ -44,7 +49,7 @@ export default function Navbar() {
             <li>
               <a
                 href="#"
-                className="block py-2 px-3 text-white bg-blue-700 rounded-sm md:bg-transparent md:text-blue-700 md:p-0"
+                className="block py-2 px-3 text-white bg-amber-700 rounded-sm md:bg-transparent md:text-amber-700 md:p-0"
                 aria-current="page"
               >
                 Home
@@ -53,7 +58,7 @@ export default function Navbar() {
             <li>
               <a
                 href="#"
-                className="block py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0"
+                className="block py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-amber-700 md:p-0"
               >
                 About
               </a>
@@ -61,7 +66,7 @@ export default function Navbar() {
             <li>
               <a
                 href="#"
-                className="block py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 "
+                className="block py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-amber-700 md:p-0 "
               >
                 Services
               </a>
@@ -69,7 +74,7 @@ export default function Navbar() {
             <li>
               <a
                 href="#"
-                className="block py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 "
+                className="block py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-amber-700 md:p-0 "
               >
                 Pricing
               </a>
@@ -77,7 +82,7 @@ export default function Navbar() {
             <li>
               <a
                 href="#"
-                className="block py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 "
+                className="block py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-amber-700 md:p-0 "
               >
                 Contact
               </a>

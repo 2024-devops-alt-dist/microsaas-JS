@@ -9,9 +9,7 @@ export default function Layout({
   return (
     <>
       <Navbar />
-      <main className="h-100 p-5 m-5 flex flex-col justify-center">
-        {children}
-      </main>
+      <main className="h-100 p-5 m-5">{children}</main>
       <Footer />
     </>
   );

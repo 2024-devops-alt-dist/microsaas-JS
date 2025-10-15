@@ -4,6 +4,20 @@ body {
   min-height: 100vh;
 }
 
+.navbar {
+  flex: 0 1 auto;
+}
+
+main {
+  flex: 1 1 auto;
+}
+
+.footer {
+  flex: 0 1 40px;
+}
+
 #__next {
   min-height: 100vh;
+  display: flex;
+  flex-flow: column;
 }

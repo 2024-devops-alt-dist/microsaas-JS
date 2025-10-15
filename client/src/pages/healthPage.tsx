@@ -30,11 +30,11 @@ export default function HealthPage() {
 
   return (
     <div className="p-5">
-      <div className="flex flex-col justify-center items-center h-100">
+      <div className="flex flex-col justify-start items-center h-100">
         <h1 className="mb-4 text-4xl font-extrabold leading-none tracking-tight text-gray-900 md:text-5xl lg:text-6xl ">
           Surprise
         </h1>
-        <p className="mb-6 text-lg font-normal text-gray-500 lg:text-xl sm:px-16 xl:px-48">
+        <p className="mb-6 p-3 text-lg font-normal text-gray-500 lg:text-xl sm:px-16 xl:px-48">
           Une application dockerisée en Next.js, Node.js et Postgresql,
           appellant le port {port} en backend.
         </p>
@@ -51,7 +51,7 @@ export default function HealthPage() {
           </p>
           <button
             onClick={changeToggleState}
-            className="bg-transparent hover:bg-blue-500 text-blue-700 font-semibold hover:text-white py-2 px-4 border border-blue-500 hover:border-transparent rounded"
+            className="bg-transparent hover:bg-amber-500 text-amber-700 font-semibold hover:text-white py-2 px-4 border border-amber-500 hover:border-transparent rounded"
           >
             Tester
           </button>
