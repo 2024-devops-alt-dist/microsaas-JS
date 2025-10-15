@@ -10,7 +10,7 @@ Créez un fichier .env à la racine du projet avec le contenu suivant du .env.ex
 
 Puis lancez la commande `docker compose up --build` dans le terminal.
 
-Dans un navigateur, aller sur http://localhost:5173/ pour accéder à l'affichage de la page. Cliquez sur le bouton pour tester la connection au back-end et à la base de données.
+Dans un navigateur, aller sur http://localhost:5173/healthPage pour accéder à l'affichage de la page. Cliquez sur le bouton pour tester la connection au back-end et à la base de données.
 
 # Features
 
