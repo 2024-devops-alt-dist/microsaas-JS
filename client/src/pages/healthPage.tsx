@@ -3,16 +3,24 @@ import { useEffect, useState } from "react";
 import { Health } from "../entities";
 const port = process.env.NEXT_PUBLIC_API_PORT || 3000;
 
-export default function Home() {
+export default function HealthPage() {
   const [health, setHealth] = useState<Health[]>();
   const [toggle, setToggle] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchHealth = async () => {
-      const response = await fetch(`http://localhost:3000/api/v1/health`);
-      const res = await response.json();
-      setHealth(res.data);
+      try {
+        const response = await fetch(`http://localhost:${port}/api/v1/health`);
+        const res = await response.json();
+        if (res) {
+          setHealth(res.data);
+        }
+      } catch {
+        console.log("error");
+        setHealth([{ id: 2, name: "pas de connexion" }]);
+      }
     };
+
     fetchHealth();
   }, [toggle]);
 
@@ -22,7 +30,7 @@ export default function Home() {
 
   return (
     <div className="p-5">
-      <main className="flex flex-col justify-center items-center h-100">
+      <div className="flex flex-col justify-center items-center h-100">
         <h1 className="mb-4 text-4xl font-extrabold leading-none tracking-tight text-gray-900 md:text-5xl lg:text-6xl ">
           Surprise
         </h1>
@@ -47,17 +55,24 @@ export default function Home() {
           >
             Tester
           </button>
-          {toggle && health && health[0] && (
-            <div
-              className="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50"
-              role="alert"
-            >
-              <span className="font-medium">Succès !</span>
-              {health[0].name}
-            </div>
-          )}
         </a>
-      </main>
+        {toggle && health && health[0] && health[0].id === 1 && (
+          <div
+            className="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50 mt-5"
+            role="alert"
+          >
+            <span className="font-medium">Succès ! </span> {health[0].name}
+          </div>
+        )}
+        {toggle && health && health[0] && health[0].id === 2 && (
+          <div
+            className="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 mt-5"
+            role="alert"
+          >
+            <span className="font-medium">Erreur ! </span> {health[0].name}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
