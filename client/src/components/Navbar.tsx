@@ -16,7 +16,7 @@ export default function Navbar() {
             height={40}
           />
 
-          <span className="self-center text-2xl font-semibold whitespace-nowrap">
+          <span className="abril-fatface-regular self-center text-2xl font-semibold whitespace-nowrap">
             Surprise
           </span>
         </a>
