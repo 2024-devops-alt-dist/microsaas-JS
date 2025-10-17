@@ -9,7 +9,7 @@ export default function Layout({
   return (
     <>
       <Navbar />
-      <main className="main-section p-5 m-5">{children}</main>
+      <main className="main-section p-5">{children}</main>
       <Footer />
     </>
   );

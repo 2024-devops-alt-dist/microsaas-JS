@@ -3,7 +3,8 @@ export interface Health {
   name: string;
 }
 
-export interface Event {
+export interface FestiveEvent {
   id: number;
-  name: string;
+  title: string;
+  description: string;
 }

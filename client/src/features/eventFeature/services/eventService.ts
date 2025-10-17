@@ -1,24 +1,26 @@
 /* import mockEventsData from "../data/mockEventsData.json";
-import { Event } from "../../../entities";
+import { FestiveEvent } from "../../../entities";
 
 const USE_MOCK = true;
 
 const mockApi = {
-    async getAll() {
-    return [...mockEventsData];
+     getAll(){
+    return mockEventsData;
   },
-  async create(event: Event) {
-    return { id: Date.now(), ...event };
+  create(event: FestiveEvent) {
+    event.id = Date.now()
+    return event;
   },
-  async delete(id: number) {
+  delete(id: number) {
     return { success: true };
   },
 };
 
 const realApi = {
     async getAll() { },
-  async create(event:Event) {  },
+  async create(event:FestiveEvent) {  },
   async delete(id:number) {  }
 };
 
-export const myService = USE_MOCK ? mockApi : realApi; */
+export const myService = USE_MOCK ? mockApi : realApi;
+ */

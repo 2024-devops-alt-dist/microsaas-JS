@@ -29,8 +29,8 @@ export default function HealthPage() {
   };
 
   return (
-    <div className="p-5">
-      <div className="flex flex-col justify-start items-center h-100">
+    <div className="p-5 flex flex-col justify-start items-center h-100">
+      <div className="flex flex-col justify-start items-center h-100 bg-white">
         <h1 className="abril-fatface-regular mb-4 text-4xl font-extrabold leading-none tracking-tight text-gray-900 md:text-5xl lg:text-6xl ">
           Surprise
         </h1>

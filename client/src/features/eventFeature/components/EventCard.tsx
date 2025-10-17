@@ -1,14 +1,21 @@
-export default function EventCard() {
+import { FestiveEvent } from "@/entities";
+
+interface Props {
+  event: FestiveEvent;
+}
+
+export default function EventCard({ event }: Props) {
   return (
     <a
       href="#"
-      className="mt-3 mb-2 block max-w-sm p-6 bg-white border border-gray-200 rounded-lg shadow-sm hover:bg-gray-100"
+      className="h-full block max-w-sm p-5 bg-white border-2 border-orange-200 rounded-lg shadow-sm hover:bg-orange-100"
+      key={event.id && event.id}
     >
-      <h5 className="mb-2 text-2xl font-bold tracking-tight text-gray-900">
-        Titre événement
+      <h5 className="mb-2 text-2xl abril-fatface-regular tracking-tight text-gray-900">
+        {event.title && event.title}
       </h5>
       <p className="font-normal text-gray-700">
-        Lorem ipsum dolor sit amet consectetur adipisicing elit....
+        {event.description && event.description}
       </p>
     </a>
   );
