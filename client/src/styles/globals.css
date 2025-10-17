@@ -4,20 +4,42 @@ body {
   min-height: 100vh;
 }
 
+#__next {
+  min-height: 100vh;
+}
+
+#main-flex-parent {
+  display: flex;
+  flex-flow: column;
+  min-height: 100vh;
+}
+
 .navbar {
   flex: 0 1 auto;
 }
 
-main {
+.main-section {
   flex: 1 1 auto;
+  min-height: 100%;
+  --d: 3px;
+  background: radial-gradient(
+      circle at var(--d) var(--d),
+      #000 calc(var(--d) - 1px),
+      #0000 var(--d)
+    )
+    0 0 / 50px 50px;
 }
 
 .footer {
   flex: 0 1 40px;
 }
 
-#__next {
-  min-height: 100vh;
-  display: flex;
-  flex-flow: column;
+.abril-fatface-regular {
+  font-family: "Abril Fatface", serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+* {
+  font-family: "Lato";
 }
