@@ -19,4 +19,7 @@ const path = `/api/${version}`;
 import { router as healthRoute } from "./routes/health";
 app.use(`${path}/health`, healthRoute);
 
+import { router as usersRoute } from "./routes/users";
+app.use(`${path}/users`, usersRoute);
+
 export default app;
