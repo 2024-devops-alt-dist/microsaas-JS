@@ -3,6 +3,8 @@ dotenv.config();
 import app from "./app";
 import { pool } from "./db/config";
 import { env } from "process";
+import { drizzle } from "drizzle-orm/node-postgres";
+const db = drizzle({ client: pool });
 
 const API_PORT = env.API_PORT || 3000;
 
@@ -18,3 +20,5 @@ pool
   .catch((err: Error) =>
     console.error("Erreur de connexion à PostgreSQL", err),
   );
+
+export { db };

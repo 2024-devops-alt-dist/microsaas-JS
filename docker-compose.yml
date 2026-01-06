@@ -29,7 +29,7 @@ services:
           DB_NAME: ${DB_NAME}
           PORT: ${API_PORT}
         volumes:
-          - surprise-backend-js:/src/app
+          - surprise-backend-js:/app
 
   client:
     build: ./client
