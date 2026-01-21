@@ -4,13 +4,13 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 5173 --turbopack",
-    "build": "next build -p 5173 --turbopack",
+    "build": "next build",
     "start": "next start -p 5173",
     "lint": "eslint"
   },
   "dependencies": {
     "dotenv": "^17.2.3",
-    "next": "15.5.3",
+    "next": "^16.1.0",
     "react": "19.1.0",
     "react-dom": "19.1.0"
   },
