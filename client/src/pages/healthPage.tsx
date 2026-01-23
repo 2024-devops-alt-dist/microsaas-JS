@@ -52,6 +52,7 @@ export default function HealthPage() {
           <button
             onClick={changeToggleState}
             className="bg-transparent hover:bg-amber-500 text-amber-700 font-semibold hover:text-white py-2 px-4 border border-amber-500 hover:border-transparent rounded"
+            id="testButton"
           >
             Tester
           </button>
@@ -60,6 +61,7 @@ export default function HealthPage() {
           <div
             className="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50 mt-5"
             role="alert"
+            id="successMessage"
           >
             <span className="font-medium">Succès ! </span> {health[0].name}
           </div>
@@ -68,6 +70,7 @@ export default function HealthPage() {
           <div
             className="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 mt-5"
             role="alert"
+            id="errorMessage"
           >
             <span className="font-medium">Erreur ! </span> {health[0].name}
           </div>
