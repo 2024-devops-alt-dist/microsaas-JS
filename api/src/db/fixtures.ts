@@ -1,5 +1,5 @@
 import { drizzle } from "drizzle-orm/node-postgres";
-import { testTable } from "./schema/test";
+import { testTable } from "./schema/testSchema";
 import { usersTable } from "./schema/users";
 import { festiveEventTable } from "./schema/festiveEvent";
 import { usersEventTable } from "./schema/usersEvents";
