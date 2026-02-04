@@ -1,11 +1,11 @@
 import { Request, Response } from "express";
-import { pool } from "../db/config";
+import { usersService } from "../services/usersService";
 
 export const usersController = {
   getAll: async (req: Request, res: Response) => {
     try {
-      const data = await pool.query("SELECT * FROM users");
-      res.status(200).json({ data: data.rows });
+      const data = await usersService.getAllUsers();
+      res.status(200).json({ data });
     } catch (error) {
       res.status(500).json({ msg: error, message: "y a une erreur" });
     }
@@ -14,11 +14,11 @@ export const usersController = {
   getById: async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-      const data = await pool.query("SELECT * FROM users WHERE id = $1", [id]);
-      if (data.rows.length === 0) {
+      const data = await usersService.getUserById(Number(id));
+      if (!data) {
         return res.status(404).json({ message: "User not found" });
       }
-      res.status(200).json({ data: data.rows[0] });
+      res.status(200).json({ data });
     } catch (error) {
       res.status(500).json({ msg: error, message: "y a une erreur" });
     }
@@ -27,11 +27,8 @@ export const usersController = {
   create: async (req: Request, res: Response) => {
     try {
       const { email, name, password } = req.body;
-      const data = await pool.query(
-        "INSERT INTO users (email, name, password) VALUES ($1, $2, $3) RETURNING *",
-        [email, name, password],
-      );
-      res.status(201).json({ data: data.rows[0] });
+      const data = await usersService.createUser(email, name, password);
+      res.status(201).json({ data });
     } catch (error) {
       res.status(500).json({ msg: error, message: "y a une erreur" });
     }
@@ -41,14 +38,16 @@ export const usersController = {
     try {
       const { id } = req.params;
       const { email, name, password } = req.body;
-      const data = await pool.query(
-        "UPDATE users SET email = $1, name = $2, password = $3 WHERE id = $4 RETURNING *",
-        [email, name, password, id],
+      const data = await usersService.updateUser(
+        Number(id),
+        email,
+        name,
+        password,
       );
-      if (data.rows.length === 0) {
+      if (!data) {
         return res.status(404).json({ message: "User not found" });
       }
-      res.status(200).json({ data: data.rows[0] });
+      res.status(200).json({ data });
     } catch (error) {
       res.status(500).json({ msg: error, message: "y a une erreur" });
     }
@@ -57,11 +56,8 @@ export const usersController = {
   delete: async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-      const data = await pool.query(
-        "DELETE FROM users WHERE id = $1 RETURNING *",
-        [id],
-      );
-      if (data.rows.length === 0) {
+      const data = await usersService.deleteUser(Number(id));
+      if (!data) {
         return res.status(404).json({ message: "User not found" });
       }
       res.status(200).json({ message: "User deleted" });
