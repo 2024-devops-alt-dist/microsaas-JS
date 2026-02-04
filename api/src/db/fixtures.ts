@@ -1,16 +1,7 @@
 import { drizzle } from "drizzle-orm/node-postgres";
-import { testTable } from "./schema/testSchema";
 import { usersTable } from "./schema/users";
 import { festiveEventTable } from "./schema/festiveEvent";
 import { usersEventTable } from "./schema/usersEvents";
-
-async function testFixtures(db: ReturnType<typeof drizzle>) {
-  const testText: typeof testTable.$inferInsert = {
-    name: "La base de données est bien connectée !",
-  };
-  await db.insert(testTable).values(testText);
-  console.log("Test fixture inserted into test table");
-}
 
 async function usersFixtures(db: ReturnType<typeof drizzle>) {
   const firstUser: typeof usersTable.$inferInsert = {
@@ -294,7 +285,6 @@ async function usersEventsFixtures(db: ReturnType<typeof drizzle>) {
 export async function mainFixtures(db: ReturnType<typeof drizzle>) {
   //console.log("Pas de changements de la base de données");
 
-  await testFixtures(db);
   await usersFixtures(db);
   await festiveEventFixtures(db);
   await usersEventsFixtures(db);
