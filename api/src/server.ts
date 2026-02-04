@@ -1,10 +1,6 @@
 import dotenv from "dotenv";
 dotenv.config();
 import { drizzle } from "drizzle-orm/node-postgres";
-//const db = drizzle(process.env.DATABASE_URL!);
-/* import { seed } from "drizzle-seed";
-import { users } from './db/schema/users'; 
-import { test } from './db/schema/test'; */
 import { pool } from "./db/config";
 import app from "./app";
 import { env } from "process";
