@@ -7,7 +7,7 @@ export const usersController = {
       const data = await pool.query("SELECT * FROM users");
       res.status(200).json({ data: data.rows });
     } catch (error) {
-      res.status(200).json({ msg: error, message: "y a une erreur" });
+      res.status(500).json({ msg: error, message: "y a une erreur" });
     }
   },
 
