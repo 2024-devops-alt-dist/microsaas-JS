@@ -7,7 +7,10 @@ const FRONTEND_PORT = env.FRONTEND_PORT || 5173;
 const app = express();
 
 const corsOptions = {
-  origin: `http://localhost:${FRONTEND_PORT}`, // l'URL front
+  origin: [
+    `http://localhost:${FRONTEND_PORT}`,
+    "https://surprise-dusky-zeta.vercel.app/",
+  ], // l'URL front
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"],
 };
