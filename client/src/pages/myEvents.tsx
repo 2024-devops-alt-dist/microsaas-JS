@@ -1,39 +1,18 @@
 import EventCard from "../features/eventFeature/components/EventCard";
 import { useEffect, useState } from "react";
 import { FestiveEvent } from "../entities";
+import { eventService } from "../services/eventService";
 
 export default function MyEvents() {
   const [festiveEvents, setFestiveEvents] = useState<FestiveEvent[]>();
 
   useEffect(() => {
-    setFestiveEvents([
-      {
-        id: 1,
-        title: "Anniversaire Aurélie",
-        description: "30 ans d'Aurélie chez Camille, venez le 27 juin...",
-      },
-      {
-        id: 2,
-        title: "Noël famille 2025",
-        description: "Semaine à la montagne du 21 au 16 décembre",
-      },
-      {
-        id: 3,
-        title: "Pot de thèse Max",
-        description:
-          "Salut, c'est Axel, pour l'organisation du pot de thèse et des cadeaux pour Max !",
-      },
-      {
-        id: 4,
-        title: "30 ans Léo",
-        description: "L'adresse du gîte : 1 chemin du Chêne... !",
-      },
-      {
-        id: 5,
-        title: "Père Noël secret",
-        description: "Allez hop hop hop, chacun.e met sa liste !",
-      },
-    ]);
+    async function getAllEvents() {
+      const data = await eventService.getAllEvents();
+      return data;
+    }
+
+    getAllEvents().then((data) => setFestiveEvents(data));
   }, []);
 
   return (

@@ -1,17 +1,13 @@
 import { Request, Response } from "express";
 
-jest.mock("../services/usersService", () => ({
-  usersService: {
-    getAllUsers: jest.fn(),
-    getUserById: jest.fn(),
-    createUser: jest.fn(),
-    updateUser: jest.fn(),
-    deleteUser: jest.fn(),
+jest.mock("../db/config", () => ({
+  pool: {
+    query: jest.fn(),
   },
 }));
 
-import { usersController } from "./users";
-import { usersService } from "../services/usersService";
+import { commentsController } from "./comments";
+import { pool } from "../db/config";
 
 const mockRequest = {} as Request;
 const mockResponse = {
@@ -19,28 +15,28 @@ const mockResponse = {
   json: jest.fn(),
 } as unknown as Response;
 
-describe("Users Controller", () => {
+describe("Comments Controller", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   describe("getAll", () => {
     it("returns data on success", async () => {
-      const mockData = [{ id: 1, email: "a@e.com", name: "A" }];
-      (usersService.getAllUsers as jest.Mock).mockResolvedValue(mockData);
+      const mockData = [{ id: 1, message: "hi" }];
+      (pool.query as jest.Mock).mockResolvedValue({ rows: mockData });
 
-      await usersController.getAll(mockRequest, mockResponse);
+      await commentsController.getAll(mockRequest, mockResponse);
 
-      expect(usersService.getAllUsers).toHaveBeenCalled();
+      expect(pool.query).toHaveBeenCalled();
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({ data: mockData });
     });
 
     it("returns 500 on error", async () => {
       const mockError = new Error("DB error");
-      (usersService.getAllUsers as jest.Mock).mockRejectedValue(mockError);
+      (pool.query as jest.Mock).mockRejectedValue(mockError);
 
-      await usersController.getAll(mockRequest, mockResponse);
+      await commentsController.getAll(mockRequest, mockResponse);
 
       expect(mockResponse.status).toHaveBeenCalledWith(500);
       expect(mockResponse.json).toHaveBeenCalledWith({
@@ -51,37 +47,39 @@ describe("Users Controller", () => {
   });
 
   describe("getById", () => {
-    it("returns user on success", async () => {
-      const mockData = { id: 1, email: "a@e.com", name: "A", password: "pwd" };
-      (usersService.getUserById as jest.Mock).mockResolvedValue(mockData);
+    it("returns comment on success", async () => {
+      const mockData = { id: 1, message: "hi" };
+      (pool.query as jest.Mock).mockResolvedValue({ rows: [mockData] });
       const reqWithParams = { params: { id: "1" } } as unknown as Request;
 
-      await usersController.getById(reqWithParams, mockResponse);
+      await commentsController.getById(reqWithParams, mockResponse);
 
-      expect(usersService.getUserById).toHaveBeenCalledWith(1);
+      expect(pool.query).toHaveBeenCalledWith(
+        "SELECT * FROM comments WHERE id = $1",
+        ["1"],
+      );
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({ data: mockData });
     });
 
     it("returns 404 when not found", async () => {
-      (usersService.getUserById as jest.Mock).mockResolvedValue(null);
+      (pool.query as jest.Mock).mockResolvedValue({ rows: [] });
       const reqWithParams = { params: { id: "1" } } as unknown as Request;
 
-      await usersController.getById(reqWithParams, mockResponse);
+      await commentsController.getById(reqWithParams, mockResponse);
 
-      expect(usersService.getUserById).toHaveBeenCalledWith(1);
       expect(mockResponse.status).toHaveBeenCalledWith(404);
       expect(mockResponse.json).toHaveBeenCalledWith({
-        message: "User not found",
+        message: "Comment not found",
       });
     });
 
     it("returns 500 on error", async () => {
       const mockError = new Error("DB error");
-      (usersService.getUserById as jest.Mock).mockRejectedValue(mockError);
+      (pool.query as jest.Mock).mockRejectedValue(mockError);
       const reqWithParams = { params: { id: "1" } } as unknown as Request;
 
-      await usersController.getById(reqWithParams, mockResponse);
+      await commentsController.getById(reqWithParams, mockResponse);
 
       expect(mockResponse.status).toHaveBeenCalledWith(500);
       expect(mockResponse.json).toHaveBeenCalledWith({
@@ -92,40 +90,33 @@ describe("Users Controller", () => {
   });
 
   describe("create", () => {
-    it("creates and returns new user", async () => {
-      const mockData = { id: 1, email: "a@e.com", name: "A", password: "pwd" };
-      (usersService.createUser as jest.Mock).mockResolvedValue(mockData);
+    it("creates and returns new comment", async () => {
+      const mockData = { id: 1, message: "hello" };
+      (pool.query as jest.Mock).mockResolvedValue({ rows: [mockData] });
       const reqWithBody = {
         body: {
-          email: "a@e.com",
-          name: "A",
-          password: "pwd",
+          message: "hello",
+          id_user: 1,
+          id_gift: 2,
+          is_public: true,
         },
       } as unknown as Request;
 
-      await usersController.create(reqWithBody, mockResponse);
+      await commentsController.create(reqWithBody, mockResponse);
 
-      expect(usersService.createUser).toHaveBeenCalledWith(
-        "a@e.com",
-        "A",
-        "pwd",
-      );
+      expect(pool.query).toHaveBeenCalled();
       expect(mockResponse.status).toHaveBeenCalledWith(201);
       expect(mockResponse.json).toHaveBeenCalledWith({ data: mockData });
     });
 
     it("returns 500 on error", async () => {
       const mockError = new Error("DB error");
-      (usersService.createUser as jest.Mock).mockRejectedValue(mockError);
+      (pool.query as jest.Mock).mockRejectedValue(mockError);
       const reqWithBody = {
-        body: {
-          email: "a@e.com",
-          name: "A",
-          password: "pwd",
-        },
+        body: { message: "hello", id_user: 1, id_gift: 2 },
       } as unknown as Request;
 
-      await usersController.create(reqWithBody, mockResponse);
+      await commentsController.create(reqWithBody, mockResponse);
 
       expect(mockResponse.status).toHaveBeenCalledWith(500);
       expect(mockResponse.json).toHaveBeenCalledWith({
@@ -136,73 +127,45 @@ describe("Users Controller", () => {
   });
 
   describe("update", () => {
-    it("updates and returns user", async () => {
-      const mockData = {
-        id: 1,
-        email: "b@e.com",
-        name: "B",
-        password: "pwd2",
-      };
-      (usersService.updateUser as jest.Mock).mockResolvedValue(mockData);
+    it("updates and returns comment", async () => {
+      const mockData = { id: 1, message: "updated" };
+      (pool.query as jest.Mock).mockResolvedValue({ rows: [mockData] });
       const reqWithParamsAndBody = {
         params: { id: "1" },
-        body: {
-          email: "b@e.com",
-          name: "B",
-          password: "pwd2",
-        },
+        body: { message: "updated", is_public: false },
       } as unknown as Request;
 
-      await usersController.update(reqWithParamsAndBody, mockResponse);
+      await commentsController.update(reqWithParamsAndBody, mockResponse);
 
-      expect(usersService.updateUser).toHaveBeenCalledWith(
-        1,
-        "b@e.com",
-        "B",
-        "pwd2",
-      );
+      expect(pool.query).toHaveBeenCalled();
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({ data: mockData });
     });
 
     it("returns 404 when not found", async () => {
-      (usersService.updateUser as jest.Mock).mockResolvedValue(null);
+      (pool.query as jest.Mock).mockResolvedValue({ rows: [] });
       const reqWithParamsAndBody = {
         params: { id: "1" },
-        body: {
-          email: "b@e.com",
-          name: "B",
-          password: "pwd2",
-        },
+        body: { message: "updated", is_public: false },
       } as unknown as Request;
 
-      await usersController.update(reqWithParamsAndBody, mockResponse);
+      await commentsController.update(reqWithParamsAndBody, mockResponse);
 
-      expect(usersService.updateUser).toHaveBeenCalledWith(
-        1,
-        "b@e.com",
-        "B",
-        "pwd2",
-      );
       expect(mockResponse.status).toHaveBeenCalledWith(404);
       expect(mockResponse.json).toHaveBeenCalledWith({
-        message: "User not found",
+        message: "Comment not found",
       });
     });
 
     it("returns 500 on error", async () => {
       const mockError = new Error("DB error");
-      (usersService.updateUser as jest.Mock).mockRejectedValue(mockError);
+      (pool.query as jest.Mock).mockRejectedValue(mockError);
       const reqWithParamsAndBody = {
         params: { id: "1" },
-        body: {
-          email: "b@e.com",
-          name: "B",
-          password: "pwd2",
-        },
+        body: { message: "updated", is_public: false },
       } as unknown as Request;
 
-      await usersController.update(reqWithParamsAndBody, mockResponse);
+      await commentsController.update(reqWithParamsAndBody, mockResponse);
 
       expect(mockResponse.status).toHaveBeenCalledWith(500);
       expect(mockResponse.json).toHaveBeenCalledWith({
@@ -214,38 +177,40 @@ describe("Users Controller", () => {
 
   describe("delete", () => {
     it("deletes and returns success message", async () => {
-      const mockData = { id: 1, email: "a@e.com", name: "A" };
-      (usersService.deleteUser as jest.Mock).mockResolvedValue(mockData);
+      const mockData = { id: 1, message: "bye" };
+      (pool.query as jest.Mock).mockResolvedValue({ rows: [mockData] });
       const reqWithParams = { params: { id: "1" } } as unknown as Request;
 
-      await usersController.delete(reqWithParams, mockResponse);
+      await commentsController.delete(reqWithParams, mockResponse);
 
-      expect(usersService.deleteUser).toHaveBeenCalledWith(1);
+      expect(pool.query).toHaveBeenCalledWith(
+        "DELETE FROM comments WHERE id = $1 RETURNING *",
+        ["1"],
+      );
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({
-        message: "User deleted",
+        message: "Comment deleted",
       });
     });
 
     it("returns 404 when not found", async () => {
-      (usersService.deleteUser as jest.Mock).mockResolvedValue(null);
+      (pool.query as jest.Mock).mockResolvedValue({ rows: [] });
       const reqWithParams = { params: { id: "1" } } as unknown as Request;
 
-      await usersController.delete(reqWithParams, mockResponse);
+      await commentsController.delete(reqWithParams, mockResponse);
 
-      expect(usersService.deleteUser).toHaveBeenCalledWith(1);
       expect(mockResponse.status).toHaveBeenCalledWith(404);
       expect(mockResponse.json).toHaveBeenCalledWith({
-        message: "User not found",
+        message: "Comment not found",
       });
     });
 
     it("returns 500 on error", async () => {
       const mockError = new Error("DB error");
-      (usersService.deleteUser as jest.Mock).mockRejectedValue(mockError);
+      (pool.query as jest.Mock).mockRejectedValue(mockError);
       const reqWithParams = { params: { id: "1" } } as unknown as Request;
 
-      await usersController.delete(reqWithParams, mockResponse);
+      await commentsController.delete(reqWithParams, mockResponse);
 
       expect(mockResponse.status).toHaveBeenCalledWith(500);
       expect(mockResponse.json).toHaveBeenCalledWith({
