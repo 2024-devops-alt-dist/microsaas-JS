@@ -26,11 +26,28 @@ export const giftsController = {
 
   create: async (req: Request, res: Response) => {
     try {
-      const { title, description, image_url, product_link, id_wishing_user } =
-        req.body;
+      const {
+        title,
+        description,
+        image_url,
+        product_link,
+        id_wishing_user,
+        is_offered,
+        multiple_gifters,
+        id_author_user,
+      } = req.body;
       const data = await pool.query(
-        "INSERT INTO gifts (title, description, image_url, product_link, id_wishing_user) VALUES ($1, $2, $3, $4, $5) RETURNING *",
-        [title, description, image_url, product_link, id_wishing_user],
+        "INSERT INTO gifts (title, description, image_url, product_link, id_wishing_user, is_offered, multiple_gifters, id_author_user) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *",
+        [
+          title,
+          description,
+          image_url,
+          product_link,
+          id_wishing_user,
+          is_offered ?? false,
+          multiple_gifters ?? false,
+          id_author_user,
+        ],
       );
       res.status(201).json({ data: data.rows[0] });
     } catch (error) {
@@ -41,11 +58,29 @@ export const giftsController = {
   update: async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-      const { title, description, image_url, product_link, id_wishing_user } =
-        req.body;
+      const {
+        title,
+        description,
+        image_url,
+        product_link,
+        id_wishing_user,
+        is_offered,
+        multiple_gifters,
+        id_author_user,
+      } = req.body;
       const data = await pool.query(
-        "UPDATE gifts SET title = $1, description = $2, image_url = $3, product_link = $4, id_wishing_user = $5 WHERE id = $6 RETURNING *",
-        [title, description, image_url, product_link, id_wishing_user, id],
+        "UPDATE gifts SET title = $1, description = $2, image_url = $3, product_link = $4, id_wishing_user = $5, is_offered = $6, multiple_gifters = $7, id_author_user = $8 WHERE id = $9 RETURNING *",
+        [
+          title,
+          description,
+          image_url,
+          product_link,
+          id_wishing_user,
+          is_offered ?? false,
+          multiple_gifters ?? false,
+          id_author_user,
+          id,
+        ],
       );
       if (data.rows.length === 0) {
         return res.status(404).json({ message: "Gift not found" });
