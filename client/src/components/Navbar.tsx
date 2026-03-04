@@ -56,14 +56,7 @@ export default function Navbar() {
                 Home
               </Link>
             </li>
-            <li>
-              <Link
-                href="/healthPage"
-                className="block py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-amber-700 md:p-0"
-              >
-                Health
-              </Link>
-            </li>
+
             <li>
               <Link
                 href="/myEvents"
