@@ -1,17 +1,14 @@
 import { Request, Response } from "express";
+import { festiveEventController } from "./festiveEvent";
 
-jest.mock("../services/festiveEventService", () => ({
-  festiveEventService: {
-    getAllEvents: jest.fn(),
-    getEventById: jest.fn(),
-    createEvent: jest.fn(),
-    updateEvent: jest.fn(),
-    deleteEvent: jest.fn(),
+// Mock the pool
+jest.mock("../db/config", () => ({
+  pool: {
+    query: jest.fn(),
   },
 }));
 
-import { festiveEventController } from "./festiveEvent";
-import { festiveEventService } from "../services/festiveEventService";
+import { pool } from "../db/config";
 
 const mockRequest = {} as Request;
 const mockResponse = {
@@ -25,28 +22,25 @@ describe("Festive Event Controller", () => {
   });
 
   describe("getAll", () => {
-    it("returns data on success", async () => {
-      const mockData = [{ id: 1, title: "Christmas Party" }];
-      (festiveEventService.getAllEvents as jest.Mock).mockResolvedValue(
-        mockData,
-      );
+    it("should return data on successful query", async () => {
+      const mockData = { rows: [{ id: 1, name: "Christmas Party" }] };
+      (pool.query as jest.Mock).mockResolvedValue(mockData);
 
       await festiveEventController.getAll(mockRequest, mockResponse);
 
-      expect(festiveEventService.getAllEvents).toHaveBeenCalled();
+      expect(pool.query).toHaveBeenCalledWith("SELECT * FROM festive_event");
       expect(mockResponse.status).toHaveBeenCalledWith(200);
-      expect(mockResponse.json).toHaveBeenCalledWith({ data: mockData });
+      expect(mockResponse.json).toHaveBeenCalledWith({ data: mockData.rows });
     });
 
-    it("returns 500 on error", async () => {
+    it("should return error message on query failure", async () => {
       const mockError = new Error("Database error");
-      (festiveEventService.getAllEvents as jest.Mock).mockRejectedValue(
-        mockError,
-      );
+      (pool.query as jest.Mock).mockRejectedValue(mockError);
 
       await festiveEventController.getAll(mockRequest, mockResponse);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(500);
+      expect(pool.query).toHaveBeenCalledWith("SELECT * FROM festive_event");
+      expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({
         msg: mockError,
         message: "y a une erreur",
@@ -55,43 +49,48 @@ describe("Festive Event Controller", () => {
   });
 
   describe("getById", () => {
-    it("returns event on success", async () => {
+    it("should return festive event data on successful query", async () => {
       const mockData = {
-        id: 1,
-        title: "Christmas Party",
-        description: "Fun event",
-        id_owner: 1,
+        rows: [
+          {
+            id: 1,
+            title: "Christmas Party",
+            description: "Fun event",
+            id_owner: 1,
+          },
+        ],
       };
-      (festiveEventService.getEventById as jest.Mock).mockResolvedValue(
-        mockData,
-      );
+      (pool.query as jest.Mock).mockResolvedValue(mockData);
       const reqWithParams = { params: { id: "1" } } as unknown as Request;
 
       await festiveEventController.getById(reqWithParams, mockResponse);
 
-      expect(festiveEventService.getEventById).toHaveBeenCalledWith(1);
+      expect(pool.query).toHaveBeenCalledWith(
+        "SELECT * FROM festive_event WHERE id = $1",
+        ["1"],
+      );
       expect(mockResponse.status).toHaveBeenCalledWith(200);
-      expect(mockResponse.json).toHaveBeenCalledWith({ data: mockData });
+      expect(mockResponse.json).toHaveBeenCalledWith({
+        data: mockData.rows[0],
+      });
     });
 
-    it("returns 404 when not found", async () => {
-      (festiveEventService.getEventById as jest.Mock).mockResolvedValue(null);
+    it("should return 404 if festive event not found", async () => {
+      const mockData = { rows: [] };
+      (pool.query as jest.Mock).mockResolvedValue(mockData);
       const reqWithParams = { params: { id: "1" } } as unknown as Request;
 
       await festiveEventController.getById(reqWithParams, mockResponse);
 
-      expect(festiveEventService.getEventById).toHaveBeenCalledWith(1);
       expect(mockResponse.status).toHaveBeenCalledWith(404);
       expect(mockResponse.json).toHaveBeenCalledWith({
         message: "Festive event not found",
       });
     });
 
-    it("returns 500 on error", async () => {
+    it("should return error message on query failure", async () => {
       const mockError = new Error("Database error");
-      (festiveEventService.getEventById as jest.Mock).mockRejectedValue(
-        mockError,
-      );
+      (pool.query as jest.Mock).mockRejectedValue(mockError);
       const reqWithParams = { params: { id: "1" } } as unknown as Request;
 
       await festiveEventController.getById(reqWithParams, mockResponse);
@@ -105,16 +104,18 @@ describe("Festive Event Controller", () => {
   });
 
   describe("create", () => {
-    it("creates and returns new event", async () => {
+    it("should create a new festive event and return it", async () => {
       const mockData = {
-        id: 1,
-        title: "Christmas Party",
-        description: "Fun event",
-        id_owner: 1,
+        rows: [
+          {
+            id: 1,
+            title: "Christmas Party",
+            description: "Fun event",
+            id_owner: 1,
+          },
+        ],
       };
-      (festiveEventService.createEvent as jest.Mock).mockResolvedValue(
-        mockData,
-      );
+      (pool.query as jest.Mock).mockResolvedValue(mockData);
       const reqWithBody = {
         body: {
           title: "Christmas Party",
@@ -125,20 +126,19 @@ describe("Festive Event Controller", () => {
 
       await festiveEventController.create(reqWithBody, mockResponse);
 
-      expect(festiveEventService.createEvent).toHaveBeenCalledWith(
-        "Christmas Party",
-        "Fun event",
-        1,
+      expect(pool.query).toHaveBeenCalledWith(
+        "INSERT INTO festive_event (title, description, id_owner) VALUES ($1, $2, $3) RETURNING *",
+        ["Christmas Party", "Fun event", 1],
       );
       expect(mockResponse.status).toHaveBeenCalledWith(201);
-      expect(mockResponse.json).toHaveBeenCalledWith({ data: mockData });
+      expect(mockResponse.json).toHaveBeenCalledWith({
+        data: mockData.rows[0],
+      });
     });
 
-    it("returns 500 on error", async () => {
+    it("should return error message on query failure", async () => {
       const mockError = new Error("Database error");
-      (festiveEventService.createEvent as jest.Mock).mockRejectedValue(
-        mockError,
-      );
+      (pool.query as jest.Mock).mockRejectedValue(mockError);
       const reqWithBody = {
         body: {
           title: "Christmas Party",
@@ -158,16 +158,18 @@ describe("Festive Event Controller", () => {
   });
 
   describe("update", () => {
-    it("updates and returns event", async () => {
+    it("should update festive event and return updated data", async () => {
       const mockData = {
-        id: 1,
-        title: "New Year Party",
-        description: "Updated event",
-        id_owner: 2,
+        rows: [
+          {
+            id: 1,
+            title: "New Year Party",
+            description: "Updated event",
+            id_owner: 2,
+          },
+        ],
       };
-      (festiveEventService.updateEvent as jest.Mock).mockResolvedValue(
-        mockData,
-      );
+      (pool.query as jest.Mock).mockResolvedValue(mockData);
       const reqWithParamsAndBody = {
         params: { id: "1" },
         body: {
@@ -179,18 +181,19 @@ describe("Festive Event Controller", () => {
 
       await festiveEventController.update(reqWithParamsAndBody, mockResponse);
 
-      expect(festiveEventService.updateEvent).toHaveBeenCalledWith(
-        1,
-        "New Year Party",
-        "Updated event",
-        2,
+      expect(pool.query).toHaveBeenCalledWith(
+        "UPDATE festive_event SET title = $1, description = $2, id_owner = $3 WHERE id = $4 RETURNING *",
+        ["New Year Party", "Updated event", 2, "1"],
       );
       expect(mockResponse.status).toHaveBeenCalledWith(200);
-      expect(mockResponse.json).toHaveBeenCalledWith({ data: mockData });
+      expect(mockResponse.json).toHaveBeenCalledWith({
+        data: mockData.rows[0],
+      });
     });
 
-    it("returns 404 when not found", async () => {
-      (festiveEventService.updateEvent as jest.Mock).mockResolvedValue(null);
+    it("should return 404 if festive event not found", async () => {
+      const mockData = { rows: [] };
+      (pool.query as jest.Mock).mockResolvedValue(mockData);
       const reqWithParamsAndBody = {
         params: { id: "1" },
         body: {
@@ -202,23 +205,15 @@ describe("Festive Event Controller", () => {
 
       await festiveEventController.update(reqWithParamsAndBody, mockResponse);
 
-      expect(festiveEventService.updateEvent).toHaveBeenCalledWith(
-        1,
-        "New Year Party",
-        "Updated event",
-        2,
-      );
       expect(mockResponse.status).toHaveBeenCalledWith(404);
       expect(mockResponse.json).toHaveBeenCalledWith({
         message: "Festive event not found",
       });
     });
 
-    it("returns 500 on error", async () => {
+    it("should return error message on query failure", async () => {
       const mockError = new Error("Database error");
-      (festiveEventService.updateEvent as jest.Mock).mockRejectedValue(
-        mockError,
-      );
+      (pool.query as jest.Mock).mockRejectedValue(mockError);
       const reqWithParamsAndBody = {
         params: { id: "1" },
         body: {
@@ -239,40 +234,39 @@ describe("Festive Event Controller", () => {
   });
 
   describe("delete", () => {
-    it("deletes and returns success message", async () => {
-      const mockData = { id: 1, title: "Christmas Party" };
-      (festiveEventService.deleteEvent as jest.Mock).mockResolvedValue(
-        mockData,
-      );
+    it("should delete festive event and return success message", async () => {
+      const mockData = { rows: [{ id: 1, title: "Christmas Party" }] };
+      (pool.query as jest.Mock).mockResolvedValue(mockData);
       const reqWithParams = { params: { id: "1" } } as unknown as Request;
 
       await festiveEventController.delete(reqWithParams, mockResponse);
 
-      expect(festiveEventService.deleteEvent).toHaveBeenCalledWith(1);
+      expect(pool.query).toHaveBeenCalledWith(
+        "DELETE FROM festive_event WHERE id = $1 RETURNING *",
+        ["1"],
+      );
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({
         message: "Festive event deleted",
       });
     });
 
-    it("returns 404 when not found", async () => {
-      (festiveEventService.deleteEvent as jest.Mock).mockResolvedValue(null);
+    it("should return 404 if festive event not found", async () => {
+      const mockData = { rows: [] };
+      (pool.query as jest.Mock).mockResolvedValue(mockData);
       const reqWithParams = { params: { id: "1" } } as unknown as Request;
 
       await festiveEventController.delete(reqWithParams, mockResponse);
 
-      expect(festiveEventService.deleteEvent).toHaveBeenCalledWith(1);
       expect(mockResponse.status).toHaveBeenCalledWith(404);
       expect(mockResponse.json).toHaveBeenCalledWith({
         message: "Festive event not found",
       });
     });
 
-    it("returns 500 on error", async () => {
+    it("should return error message on query failure", async () => {
       const mockError = new Error("Database error");
-      (festiveEventService.deleteEvent as jest.Mock).mockRejectedValue(
-        mockError,
-      );
+      (pool.query as jest.Mock).mockRejectedValue(mockError);
       const reqWithParams = { params: { id: "1" } } as unknown as Request;
 
       await festiveEventController.delete(reqWithParams, mockResponse);
