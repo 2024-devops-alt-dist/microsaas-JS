@@ -40,7 +40,7 @@ describe("Users Controller", () => {
       await usersController.getAll(mockRequest, mockResponse);
 
       expect(pool.query).toHaveBeenCalledWith("SELECT * FROM users");
-      expect(mockResponse.status).toHaveBeenCalledWith(200);
+      expect(mockResponse.status).toHaveBeenCalledWith(500);
       expect(mockResponse.json).toHaveBeenCalledWith({
         msg: mockError,
         message: "y a une erreur",
@@ -60,7 +60,7 @@ describe("Users Controller", () => {
 
       expect(pool.query).toHaveBeenCalledWith(
         "SELECT * FROM users WHERE id = $1",
-        ["1"],
+        [1],
       );
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({
@@ -168,7 +168,7 @@ describe("Users Controller", () => {
 
       expect(pool.query).toHaveBeenCalledWith(
         "UPDATE users SET email = $1, name = $2, password = $3 WHERE id = $4 RETURNING *",
-        ["jane@example.com", "Jane Doe", "newpass", "1"],
+        ["jane@example.com", "Jane Doe", "newpass", 1],
       );
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({
@@ -228,7 +228,7 @@ describe("Users Controller", () => {
 
       expect(pool.query).toHaveBeenCalledWith(
         "DELETE FROM users WHERE id = $1 RETURNING *",
-        ["1"],
+        [1],
       );
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({

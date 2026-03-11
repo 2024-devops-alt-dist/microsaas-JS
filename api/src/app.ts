@@ -22,6 +22,9 @@ const path = `/api/${version}`;
 import { router as usersRoute } from "./routes/users";
 app.use(`${path}/users`, usersRoute);
 
+import { router as authRoute } from "./routes/auth";
+app.use(`${path}/auth`, authRoute);
+
 import { router as festiveEventRoute } from "./routes/festiveEvent";
 app.use(`${path}/festiveEvent`, festiveEventRoute);
 
