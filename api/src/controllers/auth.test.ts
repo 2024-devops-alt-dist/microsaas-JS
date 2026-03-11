@@ -4,6 +4,8 @@ import { authService } from "../services/authService";
 
 jest.mock("../services/authService");
 
+// make sure login is a jest mock as well (already imported above)
+
 const mockResponse = {
   status: jest.fn().mockReturnThis(),
   json: jest.fn(),
@@ -15,7 +17,7 @@ describe("Auth Controller", () => {
   });
 
   describe("register", () => {
-    it("should create a new user and return it", async () => {
+    it("should create a new user, return it and a token", async () => {
       const returnedUser = {
         id: 1,
         email: "a@b.com",
@@ -23,6 +25,7 @@ describe("Auth Controller", () => {
         password: "hashed",
       };
       (authService.register as jest.Mock).mockResolvedValue(returnedUser);
+      (authService.login as jest.Mock).mockResolvedValue("jwt-token");
       const reqWithBody = {
         body: { email: "a@b.com", password: "pass" },
       } as unknown as Request;
@@ -30,9 +33,11 @@ describe("Auth Controller", () => {
       await authController.register(reqWithBody, mockResponse);
 
       expect(authService.register).toHaveBeenCalledWith("a@b.com", "pass");
+      expect(authService.login).toHaveBeenCalledWith("a@b.com", "pass");
       expect(mockResponse.status).toHaveBeenCalledWith(201);
       expect(mockResponse.json).toHaveBeenCalledWith({
         data: { id: 1, email: "a@b.com", name: "a@b.com" },
+        token: "jwt-token",
       });
     });
 

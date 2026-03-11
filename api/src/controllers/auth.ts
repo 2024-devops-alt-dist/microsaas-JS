@@ -10,10 +10,12 @@ export const authController = {
       }
 
       const user = await authService.register(email, password);
+      // generate a token immediately after creating the user
+      const token = await authService.login(email, password);
 
       // don't send password back in response
       const { id, name } = user;
-      res.status(201).json({ data: { id, email, name } });
+      res.status(201).json({ data: { id, email, name }, token });
     } catch (error) {
       res.status(500).json({ msg: error, message: "y a une erreur" });
     }
