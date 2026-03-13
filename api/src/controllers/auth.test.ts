@@ -27,12 +27,16 @@ describe("Auth Controller", () => {
       (authService.register as jest.Mock).mockResolvedValue(returnedUser);
       (authService.login as jest.Mock).mockResolvedValue("jwt-token");
       const reqWithBody = {
-        body: { email: "a@b.com", password: "pass" },
+        body: { email: "a@b.com", password: "pass", username: "a@b.com" },
       } as unknown as Request;
 
       await authController.register(reqWithBody, mockResponse);
 
-      expect(authService.register).toHaveBeenCalledWith("a@b.com", "pass");
+      expect(authService.register).toHaveBeenCalledWith(
+        "a@b.com",
+        "pass",
+        "a@b.com",
+      );
       expect(authService.login).toHaveBeenCalledWith("a@b.com", "pass");
       expect(mockResponse.status).toHaveBeenCalledWith(201);
       expect(mockResponse.json).toHaveBeenCalledWith({
@@ -41,13 +45,13 @@ describe("Auth Controller", () => {
       });
     });
 
-    it("should return 400 when email or password is missing", async () => {
+    it("should return 400 when email, password or username is missing", async () => {
       const reqMissing = { body: { email: "a@b.com" } } as unknown as Request;
       await authController.register(reqMissing, mockResponse);
 
       expect(mockResponse.status).toHaveBeenCalledWith(400);
       expect(mockResponse.json).toHaveBeenCalledWith({
-        message: "email and password required",
+        message: "email, password and username required",
       });
     });
 
@@ -55,7 +59,7 @@ describe("Auth Controller", () => {
       const error = new Error("Bad things");
       (authService.register as jest.Mock).mockRejectedValue(error);
       const reqWithBody = {
-        body: { email: "a@b.com", password: "pass" },
+        body: { email: "a@b.com", password: "pass", username: "a@b.com" },
       } as unknown as Request;
 
       await authController.register(reqWithBody, mockResponse);

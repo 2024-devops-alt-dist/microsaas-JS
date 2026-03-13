@@ -4,12 +4,14 @@ import { authService } from "../services/authService";
 export const authController = {
   register: async (req: Request, res: Response) => {
     try {
-      const { email, password } = req.body;
-      if (!email || !password) {
-        return res.status(400).json({ message: "email and password required" });
+      const { email, password, username } = req.body;
+      if (!email || !password || !username) {
+        return res
+          .status(400)
+          .json({ message: "email, password and username required" });
       }
 
-      const user = await authService.register(email, password);
+      const user = await authService.register(email, password, username);
       // generate a token immediately after creating the user
       const token = await authService.login(email, password);
 

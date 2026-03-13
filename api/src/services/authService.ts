@@ -15,14 +15,11 @@ const JWT_SECRET = process.env.JWT_SECRET || "secret";
 const TOKEN_LIFETIME = "1h";
 
 export const authService = {
-  register: async (email: string, password: string) => {
+  register: async (email: string, password: string, name: string) => {
     // hash password using scrypt with a random salt
     const salt = randomBytes(16).toString("hex");
     const derivedKey = (await scrypt(password, salt, 64)) as Buffer;
     const hashedPassword = `${salt}:${derivedKey.toString("hex")}`;
-
-    // for now we'll use the email as the default name
-    const name = email;
 
     const created = await usersService.createUser(email, name, hashedPassword);
     return created;

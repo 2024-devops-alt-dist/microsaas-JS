@@ -6,11 +6,15 @@ const FRONTEND_PORT = env.FRONTEND_PORT || 5173;
 
 const app = express();
 
+// incoming JSON bodies need to be parsed or `req.body` will be undefined
+app.use(express.json());
+
+// CORS configuration: allow the dev frontend port and the deployed domain
 const corsOptions = {
   origin: [
     `http://localhost:${FRONTEND_PORT}`,
-    "https://surprise-dusky-zeta.vercel.app/",
-  ], // l'URL front
+    "https://surprise-dusky-zeta.vercel.app",
+  ],
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"],
 };
