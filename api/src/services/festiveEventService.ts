@@ -16,6 +16,18 @@ export const festiveEventService = {
     return data.rows[0];
   },
 
+  getEventsForParticipant: async (userId: number) => {
+    const data = await pool.query(
+      `SELECT DISTINCT fe.*
+       FROM festive_event fe
+       INNER JOIN users_events ue ON ue.id_event = fe.id
+       WHERE ue.id_user = $1
+       ORDER BY fe.id ASC`,
+      [userId],
+    );
+    return data.rows;
+  },
+
   createEvent: async (
     title: string,
     description: string | null,

@@ -2,7 +2,9 @@ import { Router } from "express";
 export const router = Router();
 
 import { festiveEventController } from "~/controllers/festiveEvent";
+import { authenticate } from "~/middleware/auth";
 
+router.get("/mine", authenticate, festiveEventController.getMine);
 router.get("/", festiveEventController.getAll);
 router.get("/:id", festiveEventController.getById);
 router.post("/", festiveEventController.create);
