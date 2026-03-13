@@ -14,6 +14,16 @@ export const usersService = {
     return data.rows[0];
   },
 
+  getUserByEmail: async (email: string) => {
+    const data = await pool.query("SELECT * FROM users WHERE email = $1", [
+      email,
+    ]);
+    if (data.rows.length === 0) {
+      return null;
+    }
+    return data.rows[0];
+  },
+
   createUser: async (email: string, name: string, password: string) => {
     const data = await pool.query(
       "INSERT INTO users (email, name, password) VALUES ($1, $2, $3) RETURNING *",

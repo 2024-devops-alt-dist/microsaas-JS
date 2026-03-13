@@ -40,7 +40,7 @@ describe("Festive Event Controller", () => {
       await festiveEventController.getAll(mockRequest, mockResponse);
 
       expect(pool.query).toHaveBeenCalledWith("SELECT * FROM festive_event");
-      expect(mockResponse.status).toHaveBeenCalledWith(200);
+      expect(mockResponse.status).toHaveBeenCalledWith(500);
       expect(mockResponse.json).toHaveBeenCalledWith({
         msg: mockError,
         message: "y a une erreur",
@@ -67,7 +67,7 @@ describe("Festive Event Controller", () => {
 
       expect(pool.query).toHaveBeenCalledWith(
         "SELECT * FROM festive_event WHERE id = $1",
-        ["1"],
+        [1],
       );
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({
@@ -183,7 +183,7 @@ describe("Festive Event Controller", () => {
 
       expect(pool.query).toHaveBeenCalledWith(
         "UPDATE festive_event SET title = $1, description = $2, id_owner = $3 WHERE id = $4 RETURNING *",
-        ["New Year Party", "Updated event", 2, "1"],
+        ["New Year Party", "Updated event", 2, 1],
       );
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({
@@ -243,7 +243,7 @@ describe("Festive Event Controller", () => {
 
       expect(pool.query).toHaveBeenCalledWith(
         "DELETE FROM festive_event WHERE id = $1 RETURNING *",
-        ["1"],
+        [1],
       );
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({

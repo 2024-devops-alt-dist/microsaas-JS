@@ -1,7 +1,12 @@
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/router";
+import { useAuth } from "../utils/authContext";
 
 export default function Navbar() {
+  const router = useRouter();
+  const { isLogged, logout } = useAuth();
+
   return (
     <nav className="bg-white border-gray-200 navbar">
       <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
@@ -81,6 +86,29 @@ export default function Navbar() {
                 Contact
               </a>
             </li>
+            {!isLogged && (
+              <li>
+                <Link
+                  href="/loginRegister"
+                  className="block py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-amber-700 md:p-0"
+                >
+                  Se connecter
+                </Link>
+              </li>
+            )}
+            {isLogged && (
+              <li>
+                <button
+                  onClick={() => {
+                    logout();
+                    router.push("/loginRegister");
+                  }}
+                  className="block py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-amber-700 md:p-0"
+                >
+                  Déconnexion
+                </button>
+              </li>
+            )}
           </ul>
         </div>
       </div>

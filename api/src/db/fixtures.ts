@@ -2,98 +2,124 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { usersTable } from "./schema/users";
 import { festiveEventTable } from "./schema/festiveEvent";
 import { usersEventTable } from "./schema/usersEvents";
+import { giftsTable } from "./schema/gifts";
+import { commentsTable } from "./schema/comments";
+import { authService } from "../services/authService";
 
-async function usersFixtures(db: ReturnType<typeof drizzle>) {
+// Fonction qui vérifie si l'erreur ressemble à une erreur de base de données
+function isDatabaseError(
+  err: unknown,
+): err is { code?: string; cause?: { code?: string } } {
+  return typeof err === "object" && err !== null;
+}
+
+async function usersFixtures() {
+  const safeRegister = async (user: typeof usersTable.$inferInsert) => {
+    try {
+      await authService.register(user.email, user.password, user.name);
+    } catch (err: unknown) {
+      // Toujours 'unknown'
+
+      // La fonction de vérification permet à TypeScript de comprendre les propriétés
+      if (isDatabaseError(err)) {
+        if (err.cause?.code === "23505" || err.code === "23505") {
+          return;
+        }
+      }
+      throw err; // Si ce n'est pas une erreur DB ou pas le bon code, on relance
+    }
+  };
+
   const firstUser: typeof usersTable.$inferInsert = {
     email: "alizee.beaupre@gmail.com",
     name: "Alizée Beaupré",
     password: "securepassword123",
   };
-  await db.insert(usersTable).values(firstUser);
+  await safeRegister(firstUser);
 
   const secundUser: typeof usersTable.$inferInsert = {
     email: "celeste.delmare@gmail.com",
     name: "Céleste DelMare",
     password: "securepassword123",
   };
-  await db.insert(usersTable).values(secundUser);
+  await safeRegister(secundUser);
 
   const thirdUser: typeof usersTable.$inferInsert = {
     email: "emeria.faravel@gmail.com",
     name: "Emeria Faravel",
     password: "securepassword123",
   };
-  await db.insert(usersTable).values(thirdUser);
+  await safeRegister(thirdUser);
 
   const fourthdUser: typeof usersTable.$inferInsert = {
     email: "gali.hauban@gmail.com",
     name: "Gali Hauban",
     password: "securepassword123",
   };
-  await db.insert(usersTable).values(fourthdUser);
+  await safeRegister(fourthdUser);
 
   const fifthUser: typeof usersTable.$inferInsert = {
     email: "inaya.jacobsen@gmail.com",
     name: "Inaya Jacobsen",
     password: "securepassword123",
   };
-  await db.insert(usersTable).values(fifthUser);
+  await safeRegister(fifthUser);
 
   const sixthUser: typeof usersTable.$inferInsert = {
     email: "keren.lagertha@gmail.com",
     name: "Keren Lagertha",
     password: "securepassword123",
   };
-  await db.insert(usersTable).values(sixthUser);
+  await safeRegister(sixthUser);
 
   const seventhUser: typeof usersTable.$inferInsert = {
     email: "moryan.norse@gmail.com",
     name: "Moryan Norse",
     password: "securepassword123",
   };
-  await db.insert(usersTable).values(seventhUser);
+  await safeRegister(seventhUser);
 
   const eighthUser: typeof usersTable.$inferInsert = {
     email: "ornella.polaris@gmail.com",
     name: "Ornella Polaris",
     password: "securepassword123",
   };
-  await db.insert(usersTable).values(eighthUser);
+  await safeRegister(eighthUser);
 
   const ninthUser: typeof usersTable.$inferInsert = {
     email: "quentin.ressac@gmail.com",
     name: "Quentin Ressac",
     password: "securepassword123",
   };
-  await db.insert(usersTable).values(ninthUser);
+  await safeRegister(ninthUser);
 
   const tenthUser: typeof usersTable.$inferInsert = {
     email: "sama.taraudan@gmail.com",
     name: "Sama Taraudan",
     password: "securepassword123",
   };
-  await db.insert(usersTable).values(tenthUser);
+  await safeRegister(tenthUser);
 
   const eleventhUser: typeof usersTable.$inferInsert = {
     email: "ursula.vasco@gmail.com",
     name: "Ursula Vasco",
     password: "securepassword123",
   };
-  await db.insert(usersTable).values(eleventhUser);
+  await safeRegister(eleventhUser);
 
   const twelfthUser: typeof usersTable.$inferInsert = {
     email: "will.xaviera@gmail.com",
     name: "Will Xaviera",
     password: "securepassword123",
   };
-  await db.insert(usersTable).values(twelfthUser);
+  await safeRegister(twelfthUser);
 
   const thirteenthUser: typeof usersTable.$inferInsert = {
     email: "yue.zephyr@gmail.com",
     name: "Yué Zéphyr",
     password: "securepassword123",
   };
-  await db.insert(usersTable).values(thirteenthUser);
+  await safeRegister(thirteenthUser);
   console.log("13 test users inserted into users table");
 }
 
@@ -282,12 +308,183 @@ async function usersEventsFixtures(db: ReturnType<typeof drizzle>) {
   console.log("20 test user-event relations inserted into usersEvent table");
 }
 
-export async function mainFixtures(db: ReturnType<typeof drizzle>) {
-  //console.log("Pas de changements de la base de données");
+async function giftsFixtures(db: ReturnType<typeof drizzle>) {
+  const firstGift: typeof giftsTable.$inferInsert = {
+    title: "Dealing with Dragons - Patricia C. Wrede",
+    description:
+      "Un roman géniale sur une princesse qui s'enfuit de chez elle pour se rendre chez les dragons",
+    image_url:
+      "https://images-na.ssl-images-amazon.com/images/I/51nqj8s9XlL._SX331_BO1,204,203,200_.jpg",
+    product_link:
+      "https://www.amazon.fr/Dealing-Dragons-1-Patricia-Wrede/dp/0786948607/ref=sr_1_1?crid=3Q9Z5X8KZ2G9&keywords=dealing+with+dragons&qid=1700000000&sprefix=dealing+with+dragons%2Caps%2C123&sr=8-1",
+    id_wishing_user: 1,
+    is_offered: false,
+    multiple_gifters: false,
+    id_author_user: 1,
+  };
+  await db.insert(giftsTable).values(firstGift);
 
-  await usersFixtures(db);
+  const secondGift: typeof giftsTable.$inferInsert = {
+    title: "Switch 2",
+    description: "La dernière version de la console Nintendo Switch",
+    image_url: "https://example.com/switch-2.jpg",
+    product_link: "https://www.nintendo.fr/Jeux/Nintendo-Switch-1280745.html",
+    id_wishing_user: 2,
+    is_offered: false,
+    multiple_gifters: false,
+    id_author_user: 2,
+  };
+  await db.insert(giftsTable).values(secondGift);
+
+  const thirdGift: typeof giftsTable.$inferInsert = {
+    title: "Chaussettes en laine",
+    description: "Des chaussettes en laine pour garder les pieds au chaud",
+    image_url: "https://example.com/chaussettes-laine.jpg",
+    product_link:
+      "https://www.amazon.fr/Chaussettes-Laine/dp/B07P6Y8Z5Z/ref=sr_1_1?crid=3Q9Z5X8KZ2G9&keywords=chaussettes+en+laine&qid=1700000000&sprefix=chaussettes+en+laine%2Caps%2C123&sr=8-1",
+    id_wishing_user: 3,
+    is_offered: false,
+    multiple_gifters: false,
+    id_author_user: 3,
+  };
+  await db.insert(giftsTable).values(thirdGift);
+
+  const fourthGift: typeof giftsTable.$inferInsert = {
+    title: "Coffret de thé",
+    description: "Un coffret de thé pour les amateurs de thé",
+    image_url: "https://example.com/coffret-the.jpg",
+    product_link:
+      "https://www.amazon.fr/Coffret-Thé/dp/B07P6Y8Z5Z/ref=sr_1_1?crid=3Q9Z5X8KZ2G9&keywords=coffret+de+thé&qid=1700000000&sprefix=coffret+de+thé%2Caps%2C123&sr=8-1",
+    id_wishing_user: 4,
+    is_offered: false,
+    multiple_gifters: false,
+    id_author_user: 4,
+  };
+  await db.insert(giftsTable).values(fourthGift);
+
+  const fifthGift: typeof giftsTable.$inferInsert = {
+    title: "Forêt mixte Dartmoor",
+    description:
+      "Le jeu de société qui suit le Forêt mixte classique, mais sur la lande du Dartmoor.",
+    image_url: "https://example.com/foret-mixte-dartmoor.jpg",
+    product_link:
+      "https://www.amazon.fr/Forêt-Mixte-Dartmoor/dp/B07P6Y8Z5Z/ref=sr_1_1?crid=3Q9Z5X8KZ2G9&keywords=forêt+mixte+dartmoor&qid=1700000000&sprefix=forêt+mixte+dartmoor%2Caps%2C123&sr=8-1",
+    id_wishing_user: 5,
+    is_offered: false,
+    multiple_gifters: false,
+    id_author_user: 5,
+  };
+  await db.insert(giftsTable).values(fifthGift);
+
+  const sixthGift: typeof giftsTable.$inferInsert = {
+    title: "LEGO Botanical Collection - 10289",
+    description: "Un set LEGO de collection botanique",
+    image_url: "https://example.com/lego-botanical-collection-10289.jpg",
+    product_link:
+      "https://www.lego.com/fr-fr/product/botanical-collection-10289",
+    id_wishing_user: 6,
+    is_offered: false,
+    multiple_gifters: false,
+    id_author_user: 6,
+  };
+  await db.insert(giftsTable).values(sixthGift);
+
+  const seventhGift: typeof giftsTable.$inferInsert = {
+    title: "Dune Imperium Insurrection",
+    description: "Le dernier jeu de la série Dune Imperium",
+    image_url: "https://example.com/dune-imperium-insurrection.jpg",
+    product_link:
+      "https://www.amazon.fr/Dune-Imperium-Insurrection/dp/B07P6Y8Z5Z/ref=sr_1_1?crid=3Q9Z5X8KZ2G9&keywords=dune+imperium+insurrection&qid=1700000000&sprefix=dune+imperium+insurrection%2Caps%2C123&sr=8-1",
+    id_wishing_user: 7,
+    is_offered: false,
+    multiple_gifters: false,
+    id_author_user: 7,
+  };
+  await db.insert(giftsTable).values(seventhGift);
+
+  console.log("7 test gifts inserted into gifts table");
+}
+
+async function commentsFixture(db: ReturnType<typeof drizzle>) {
+  const firstComment: typeof commentsTable.$inferInsert = {
+    message: "J'ai hâte de recevoir ce livre !",
+    id_user: 1,
+    id_gift: 1,
+    is_public: true,
+    timestamp: new Date(),
+    is_edited: false,
+    timestamp_edited: null,
+  };
+  await db.insert(commentsTable).values(firstComment);
+
+  const secondComment: typeof commentsTable.$inferInsert = {
+    message: "Ce jeu a l'air super !",
+    id_user: 2,
+    id_gift: 2,
+    is_public: true,
+    timestamp: new Date(),
+    is_edited: false,
+    timestamp_edited: null,
+  };
+  await db.insert(commentsTable).values(secondComment);
+
+  console.log("2 test comments inserted into comments table");
+}
+
+async function hasExistingFixturesData(
+  db: ReturnType<typeof drizzle>,
+): Promise<boolean> {
+  const usersRows = await db
+    .select({ id: usersTable.id })
+    .from(usersTable)
+    .limit(1);
+  if (usersRows.length > 0) {
+    return true;
+  }
+
+  const festiveEventRows = await db
+    .select({ id: festiveEventTable.id })
+    .from(festiveEventTable)
+    .limit(1);
+  if (festiveEventRows.length > 0) {
+    return true;
+  }
+
+  const usersEventRows = await db
+    .select({ id_user: usersEventTable.id_user })
+    .from(usersEventTable)
+    .limit(1);
+  if (usersEventRows.length > 0) {
+    return true;
+  }
+
+  const giftsRows = await db
+    .select({ id: giftsTable.id })
+    .from(giftsTable)
+    .limit(1);
+  if (giftsRows.length > 0) {
+    return true;
+  }
+
+  const commentsRows = await db
+    .select({ id: commentsTable.id })
+    .from(commentsTable)
+    .limit(1);
+
+  return commentsRows.length > 0;
+}
+
+export async function mainFixtures(db: ReturnType<typeof drizzle>) {
+  if (await hasExistingFixturesData(db)) {
+    console.log("Skipping fixtures: existing data detected in database tables");
+    return;
+  }
+
+  await usersFixtures();
   await festiveEventFixtures(db);
   await usersEventsFixtures(db);
+  await giftsFixtures(db);
+  await commentsFixture(db);
 
   console.log("All fixtures have been inserted");
 }

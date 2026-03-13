@@ -30,7 +30,9 @@ services:
       PORT: ${API_PORT}
     volumes:
       - ./api:/app
-      - /app/node_modules
+      # we used to mount /app/node_modules here, but that hides
+      # the deps installed during image build. keeping the container
+      # node_modules avoids “cannot find module” errors.
 
   client:
     build: ./client
@@ -38,7 +40,7 @@ services:
       - ${FRONTEND_PORT}:${FRONTEND_PORT}
     volumes:
       - ./client:/app
-      - /app/node_modules
+      # do not mount node_modules from host; container builds its own
     command: npm run dev
 
 volumes:
