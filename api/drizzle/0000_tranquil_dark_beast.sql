@@ -4,9 +4,9 @@ CREATE TABLE "comments" (
 	"id_user" integer NOT NULL,
 	"id_gift" integer NOT NULL,
 	"is_public" boolean DEFAULT false NOT NULL,
-	"timestamp" "cal::local_datetime" DEFAULT now() NOT NULL,
+	"timestamp" timestamp DEFAULT now() NOT NULL,
 	"is_edited" boolean DEFAULT false NOT NULL,
-	"timestamp_edited" "cal::local_datetime"
+	"timestamp_edited" timestamp
 );
 --> statement-breakpoint
 CREATE TABLE "festive_event" (

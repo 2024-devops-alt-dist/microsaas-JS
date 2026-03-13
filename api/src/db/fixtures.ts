@@ -4,98 +4,122 @@ import { festiveEventTable } from "./schema/festiveEvent";
 import { usersEventTable } from "./schema/usersEvents";
 import { giftsTable } from "./schema/gifts";
 import { commentsTable } from "./schema/comments";
+import { authService } from "../services/authService";
 
-async function usersFixtures(db: ReturnType<typeof drizzle>) {
+// Fonction qui vérifie si l'erreur ressemble à une erreur de base de données
+function isDatabaseError(
+  err: unknown,
+): err is { code?: string; cause?: { code?: string } } {
+  return typeof err === "object" && err !== null;
+}
+
+async function usersFixtures() {
+  const safeRegister = async (user: typeof usersTable.$inferInsert) => {
+    try {
+      await authService.register(user.email, user.password, user.name);
+    } catch (err: unknown) {
+      // Toujours 'unknown'
+
+      // La fonction de vérification permet à TypeScript de comprendre les propriétés
+      if (isDatabaseError(err)) {
+        if (err.cause?.code === "23505" || err.code === "23505") {
+          return;
+        }
+      }
+      throw err; // Si ce n'est pas une erreur DB ou pas le bon code, on relance
+    }
+  };
+
   const firstUser: typeof usersTable.$inferInsert = {
     email: "alizee.beaupre@gmail.com",
     name: "Alizée Beaupré",
     password: "securepassword123",
   };
-  await db.insert(usersTable).values(firstUser);
+  await safeRegister(firstUser);
 
   const secundUser: typeof usersTable.$inferInsert = {
     email: "celeste.delmare@gmail.com",
     name: "Céleste DelMare",
     password: "securepassword123",
   };
-  await db.insert(usersTable).values(secundUser);
+  await safeRegister(secundUser);
 
   const thirdUser: typeof usersTable.$inferInsert = {
     email: "emeria.faravel@gmail.com",
     name: "Emeria Faravel",
     password: "securepassword123",
   };
-  await db.insert(usersTable).values(thirdUser);
+  await safeRegister(thirdUser);
 
   const fourthdUser: typeof usersTable.$inferInsert = {
     email: "gali.hauban@gmail.com",
     name: "Gali Hauban",
     password: "securepassword123",
   };
-  await db.insert(usersTable).values(fourthdUser);
+  await safeRegister(fourthdUser);
 
   const fifthUser: typeof usersTable.$inferInsert = {
     email: "inaya.jacobsen@gmail.com",
     name: "Inaya Jacobsen",
     password: "securepassword123",
   };
-  await db.insert(usersTable).values(fifthUser);
+  await safeRegister(fifthUser);
 
   const sixthUser: typeof usersTable.$inferInsert = {
     email: "keren.lagertha@gmail.com",
     name: "Keren Lagertha",
     password: "securepassword123",
   };
-  await db.insert(usersTable).values(sixthUser);
+  await safeRegister(sixthUser);
 
   const seventhUser: typeof usersTable.$inferInsert = {
     email: "moryan.norse@gmail.com",
     name: "Moryan Norse",
     password: "securepassword123",
   };
-  await db.insert(usersTable).values(seventhUser);
+  await safeRegister(seventhUser);
 
   const eighthUser: typeof usersTable.$inferInsert = {
     email: "ornella.polaris@gmail.com",
     name: "Ornella Polaris",
     password: "securepassword123",
   };
-  await db.insert(usersTable).values(eighthUser);
+  await safeRegister(eighthUser);
 
   const ninthUser: typeof usersTable.$inferInsert = {
     email: "quentin.ressac@gmail.com",
     name: "Quentin Ressac",
     password: "securepassword123",
   };
-  await db.insert(usersTable).values(ninthUser);
+  await safeRegister(ninthUser);
 
   const tenthUser: typeof usersTable.$inferInsert = {
     email: "sama.taraudan@gmail.com",
     name: "Sama Taraudan",
     password: "securepassword123",
   };
-  await db.insert(usersTable).values(tenthUser);
+  await safeRegister(tenthUser);
 
   const eleventhUser: typeof usersTable.$inferInsert = {
     email: "ursula.vasco@gmail.com",
     name: "Ursula Vasco",
     password: "securepassword123",
   };
-  await db.insert(usersTable).values(eleventhUser);
+  await safeRegister(eleventhUser);
 
   const twelfthUser: typeof usersTable.$inferInsert = {
     email: "will.xaviera@gmail.com",
     name: "Will Xaviera",
     password: "securepassword123",
   };
-  await db.insert(usersTable).values(twelfthUser);
+  await safeRegister(twelfthUser);
 
   const thirteenthUser: typeof usersTable.$inferInsert = {
     email: "yue.zephyr@gmail.com",
     name: "Yué Zéphyr",
     password: "securepassword123",
   };
-  await db.insert(usersTable).values(thirteenthUser);
+  await safeRegister(thirteenthUser);
   console.log("13 test users inserted into users table");
 }
 
@@ -407,9 +431,56 @@ async function commentsFixture(db: ReturnType<typeof drizzle>) {
   console.log("2 test comments inserted into comments table");
 }
 
+async function hasExistingFixturesData(
+  db: ReturnType<typeof drizzle>,
+): Promise<boolean> {
+  const usersRows = await db
+    .select({ id: usersTable.id })
+    .from(usersTable)
+    .limit(1);
+  if (usersRows.length > 0) {
+    return true;
+  }
+
+  const festiveEventRows = await db
+    .select({ id: festiveEventTable.id })
+    .from(festiveEventTable)
+    .limit(1);
+  if (festiveEventRows.length > 0) {
+    return true;
+  }
+
+  const usersEventRows = await db
+    .select({ id_user: usersEventTable.id_user })
+    .from(usersEventTable)
+    .limit(1);
+  if (usersEventRows.length > 0) {
+    return true;
+  }
+
+  const giftsRows = await db
+    .select({ id: giftsTable.id })
+    .from(giftsTable)
+    .limit(1);
+  if (giftsRows.length > 0) {
+    return true;
+  }
+
+  const commentsRows = await db
+    .select({ id: commentsTable.id })
+    .from(commentsTable)
+    .limit(1);
+
+  return commentsRows.length > 0;
+}
+
 export async function mainFixtures(db: ReturnType<typeof drizzle>) {
-  //console.log("Pas de changements de la base de données");
-  await usersFixtures(db);
+  if (await hasExistingFixturesData(db)) {
+    console.log("Skipping fixtures: existing data detected in database tables");
+    return;
+  }
+
+  await usersFixtures();
   await festiveEventFixtures(db);
   await usersEventsFixtures(db);
   await giftsFixtures(db);
