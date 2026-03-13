@@ -50,14 +50,14 @@ export default function MyEvents() {
       </div>
       <div className="grid auto-rows-fr grid-cols-3 gap-4">
         {loading && (
-          <p className="text-gray-500">Chargement de vos evenements...</p>
+          <p className="text-gray-500">Chargement de vos événements...</p>
         )}
 
         {!loading && error && <p className="text-red-600">{error}</p>}
 
         {!loading && !error && festiveEvents.length === 0 && (
           <p className="text-gray-500">
-            Aucun evenement trouve pour votre compte.
+            Aucun événement trouvé pour votre compte.
           </p>
         )}
 

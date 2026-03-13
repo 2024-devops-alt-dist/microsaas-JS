@@ -7,7 +7,7 @@ interface Props {
 export default function EventCard({ event }: Props) {
   return (
     <a
-      href="#"
+      href={`/festiveEvent/${event.id}`}
       className="h-full block max-w-sm p-5 bg-white border-2 border-orange-200 rounded-lg shadow-sm hover:bg-orange-100"
       key={event.id && event.id}
     >

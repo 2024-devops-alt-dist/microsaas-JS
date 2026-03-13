@@ -39,6 +39,26 @@ export const festiveEventController = {
     }
   },
 
+  getParticipants: async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const eventId = Number(id);
+      if (!eventId) {
+        return res.status(400).json({ message: "Invalid festive event id" });
+      }
+
+      const event = await festiveEventService.getEventById(eventId);
+      if (!event) {
+        return res.status(404).json({ message: "Festive event not found" });
+      }
+
+      const data = await festiveEventService.getParticipantsForEvent(eventId);
+      res.status(200).json({ data });
+    } catch (error) {
+      res.status(500).json({ msg: error, message: "y a une erreur" });
+    }
+  },
+
   create: async (req: Request, res: Response) => {
     try {
       const { title, description, id_owner } = req.body;

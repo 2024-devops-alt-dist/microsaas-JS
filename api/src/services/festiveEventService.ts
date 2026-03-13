@@ -28,6 +28,37 @@ export const festiveEventService = {
     return data.rows;
   },
 
+  getParticipantsForEvent: async (eventId: number) => {
+    const data = await pool.query(
+      `SELECT
+         u.id,
+         u.name,
+         COALESCE(
+           json_agg(
+             json_build_object(
+               'id', g.id,
+               'title', g.title,
+               'description', g.description,
+               'image_url', g.image_url,
+               'product_link', g.product_link,
+               'is_offered', g.is_offered,
+               'multiple_gifters', g.multiple_gifters
+             )
+             ORDER BY g.id
+           ) FILTER (WHERE g.id IS NOT NULL),
+           '[]'::json
+         ) AS gifts
+       FROM users u
+       INNER JOIN users_events ue ON ue.id_user = u.id
+       LEFT JOIN gifts g ON g.id_wishing_user = u.id
+       WHERE ue.id_event = $1
+       GROUP BY u.id, u.name
+       ORDER BY u.name ASC`,
+      [eventId],
+    );
+    return data.rows;
+  },
+
   createEvent: async (
     title: string,
     description: string | null,
