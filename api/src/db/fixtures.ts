@@ -431,8 +431,54 @@ async function commentsFixture(db: ReturnType<typeof drizzle>) {
   console.log("2 test comments inserted into comments table");
 }
 
+async function hasExistingFixturesData(
+  db: ReturnType<typeof drizzle>,
+): Promise<boolean> {
+  const usersRows = await db
+    .select({ id: usersTable.id })
+    .from(usersTable)
+    .limit(1);
+  if (usersRows.length > 0) {
+    return true;
+  }
+
+  const festiveEventRows = await db
+    .select({ id: festiveEventTable.id })
+    .from(festiveEventTable)
+    .limit(1);
+  if (festiveEventRows.length > 0) {
+    return true;
+  }
+
+  const usersEventRows = await db
+    .select({ id_user: usersEventTable.id_user })
+    .from(usersEventTable)
+    .limit(1);
+  if (usersEventRows.length > 0) {
+    return true;
+  }
+
+  const giftsRows = await db
+    .select({ id: giftsTable.id })
+    .from(giftsTable)
+    .limit(1);
+  if (giftsRows.length > 0) {
+    return true;
+  }
+
+  const commentsRows = await db
+    .select({ id: commentsTable.id })
+    .from(commentsTable)
+    .limit(1);
+
+  return commentsRows.length > 0;
+}
+
 export async function mainFixtures(db: ReturnType<typeof drizzle>) {
-  //console.log("Pas de changements de la base de données");
+  if (await hasExistingFixturesData(db)) {
+    console.log("Skipping fixtures: existing data detected in database tables");
+    return;
+  }
 
   await usersFixtures();
   await festiveEventFixtures(db);

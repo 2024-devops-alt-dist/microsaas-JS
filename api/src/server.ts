@@ -8,8 +8,11 @@ import { mainFixtures } from "./db/fixtures";
 import { exec as execCb } from "child_process";
 import { promisify } from "util";
 
-const API_PORT = env.API_PORT || 3000;
+const API_PORT = Number(env.PORT || env.API_PORT || 3000);
 const exec = promisify(execCb);
+const shouldRunFixtures =
+  env.RUN_FIXTURES === "true" ||
+  (env.RUN_FIXTURES !== "false" && env.NODE_ENV !== "production");
 
 const db = drizzle({ client: pool });
 
@@ -35,7 +38,13 @@ pool
       console.log(`Server is running on http://localhost:${API_PORT}`);
     });
 
-    await mainFixtures(db);
+    if (shouldRunFixtures) {
+      await mainFixtures(db);
+    } else {
+      console.log(
+        "Skipping fixtures: RUN_FIXTURES disabled for this environment",
+      );
+    }
   })
   .catch((err: Error) =>
     console.error("Erreur de connexion à PostgreSQL", err),

@@ -16,9 +16,10 @@ export async function apiFetch(
   // hit the frontend server instead of the backend. to fix that we
   // compute an absolute URL using an env var that can be overridden in
   // docker-compose or .env.local.
+  const configuredBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
   const port = process.env.NEXT_PUBLIC_API_PORT || "3000";
   const host = process.env.NEXT_PUBLIC_API_HOST || "localhost";
-  const baseUrl = `http://${host}:${port}`;
+  const baseUrl = configuredBaseUrl || `http://${host}:${port}`;
 
   // if the caller already provided a full URL we leave it alone; otherwise
   // prepend the base.
