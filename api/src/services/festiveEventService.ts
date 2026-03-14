@@ -16,6 +16,61 @@ export const festiveEventService = {
     return data.rows[0];
   },
 
+  getEventsForParticipant: async (userId: number) => {
+    const data = await pool.query(
+      `SELECT DISTINCT fe.*
+       FROM festive_event fe
+       INNER JOIN users_events ue ON ue.id_event = fe.id
+       WHERE ue.id_user = $1
+       ORDER BY fe.id ASC`,
+      [userId],
+    );
+    return data.rows;
+  },
+
+  getParticipantsForEvent: async (eventId: number) => {
+    const data = await pool.query(
+      `WITH event_participants AS (
+         SELECT DISTINCT ue.id_user
+         FROM users_events ue
+         WHERE ue.id_event = $1
+       )
+       SELECT
+         u.id,
+         u.name,
+         COALESCE(
+           json_agg(
+             json_build_object(
+               'id', g.id,
+               'title', g.title,
+               'description', g.description,
+               'image_url', g.image_url,
+               'product_link', g.product_link,
+               'is_offered', g.is_offered,
+               'multiple_gifters', g.multiple_gifters,
+               'offering_user_ids', COALESCE(
+                 (
+                   SELECT json_agg(ug.id_user ORDER BY ug.id_user)
+                   FROM users_gifts ug
+                   WHERE ug.id_gift = g.id
+                 ),
+                 '[]'::json
+               )
+             )
+             ORDER BY g.id
+           ) FILTER (WHERE g.id IS NOT NULL),
+           '[]'::json
+         ) AS gifts
+       FROM event_participants ep
+       INNER JOIN users u ON u.id = ep.id_user
+       LEFT JOIN gifts g ON g.id_wishing_user = u.id
+       GROUP BY u.id, u.name
+       ORDER BY u.name ASC`,
+      [eventId],
+    );
+    return data.rows;
+  },
+
   createEvent: async (
     title: string,
     description: string | null,

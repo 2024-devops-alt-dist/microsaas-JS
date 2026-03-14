@@ -12,6 +12,10 @@ Puis lancez la commande `docker compose up --build` dans le terminal.
 
 Dans un navigateur, aller sur http://localhost:5173/healthPage pour accéder à l'affichage de la page. Cliquez sur le bouton pour tester la connection au back-end et à la base de données.
 
+# Déploiement Render (API)
+
+Voir la checklist complète dans `api/RENDER_DEPLOY.md`.
+
 # Features
 
 - CommitLint pour vérifier la validité des commits.

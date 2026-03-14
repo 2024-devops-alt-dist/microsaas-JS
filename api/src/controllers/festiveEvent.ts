@@ -1,7 +1,22 @@
 import { Request, Response } from "express";
 import { festiveEventService } from "../services/festiveEventService";
+import { AuthenticatedRequest } from "../middleware/auth";
 
 export const festiveEventController = {
+  getMine: async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const data = await festiveEventService.getEventsForParticipant(userId);
+      res.status(200).json({ data });
+    } catch (error) {
+      res.status(500).json({ msg: error, message: "y a une erreur" });
+    }
+  },
+
   getAll: async (req: Request, res: Response) => {
     try {
       const data = await festiveEventService.getAllEvents();
@@ -18,6 +33,26 @@ export const festiveEventController = {
       if (!data) {
         return res.status(404).json({ message: "Festive event not found" });
       }
+      res.status(200).json({ data });
+    } catch (error) {
+      res.status(500).json({ msg: error, message: "y a une erreur" });
+    }
+  },
+
+  getParticipants: async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const eventId = Number(id);
+      if (!eventId) {
+        return res.status(400).json({ message: "Invalid festive event id" });
+      }
+
+      const event = await festiveEventService.getEventById(eventId);
+      if (!event) {
+        return res.status(404).json({ message: "Festive event not found" });
+      }
+
+      const data = await festiveEventService.getParticipantsForEvent(eventId);
       res.status(200).json({ data });
     } catch (error) {
       res.status(500).json({ msg: error, message: "y a une erreur" });
