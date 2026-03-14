@@ -9,7 +9,7 @@ pre-commit:
 
 
     eslint:
-      glob: "*.{js,jsx,ts,tsx}"
+      glob: "{api/src,client/src}/**/*.{js,jsx,ts,tsx}"
       run: npx eslint --fix {staged_files}
       stage_fixed: true  # ✨ Re-ajoute les corrections au commit
       fail_text: "Echec pré-commit de ESLint"

@@ -2,8 +2,16 @@ import { Request, Response } from "express";
 import { AuthenticatedRequest } from "../middleware/auth";
 import { giftsController } from "./gifts";
 import { giftsService } from "../services/giftsService";
+import {
+  deleteStoredGiftImage,
+  storeGiftImage,
+} from "../services/giftImageStorage";
 
 jest.mock("../services/giftsService");
+jest.mock("../services/giftImageStorage", () => ({
+  storeGiftImage: jest.fn(),
+  deleteStoredGiftImage: jest.fn(),
+}));
 
 const mockResponse = {
   status: jest.fn().mockReturnThis(),
@@ -93,6 +101,45 @@ describe("Gifts Controller", () => {
       expect(mockResponse.status).toHaveBeenCalledWith(201);
       expect(mockResponse.json).toHaveBeenCalledWith({ data: gift });
     });
+
+    it("stores uploaded image and uses stored path", async () => {
+      const gift = { id: 2 };
+      (storeGiftImage as jest.Mock).mockResolvedValue(
+        "/uploads/gifts/test.webp",
+      );
+      (giftsService.create as jest.Mock).mockResolvedValue(gift);
+
+      const req = {
+        body: {
+          title: "T",
+          description: "d",
+          image_url: "https://example.com/image.jpg",
+          product_link: null,
+          id_wishing_user: "1",
+          is_offered: "false",
+          multiple_gifters: "false",
+          id_author_user: "1",
+        },
+        file: {
+          fieldname: "image",
+        },
+      } as unknown as Request;
+
+      await giftsController.create(req, mockResponse);
+
+      expect(storeGiftImage).toHaveBeenCalled();
+      expect(giftsService.create).toHaveBeenCalledWith(
+        "T",
+        "d",
+        "/uploads/gifts/test.webp",
+        null,
+        1,
+        false,
+        false,
+        1,
+      );
+      expect(mockResponse.status).toHaveBeenCalledWith(201);
+    });
   });
 
   describe("update", () => {
@@ -159,7 +206,10 @@ describe("Gifts Controller", () => {
 
   describe("delete", () => {
     it("deletes a gift", async () => {
-      (giftsService.delete as jest.Mock).mockResolvedValue({ id: 1 });
+      (giftsService.delete as jest.Mock).mockResolvedValue({
+        id: 1,
+        image_url: "/uploads/gifts/test.webp",
+      });
 
       await giftsController.delete(
         { params: { id: "1" } } as unknown as Request,
@@ -167,6 +217,9 @@ describe("Gifts Controller", () => {
       );
 
       expect(giftsService.delete).toHaveBeenCalledWith(1);
+      expect(deleteStoredGiftImage).toHaveBeenCalledWith(
+        "/uploads/gifts/test.webp",
+      );
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({
         message: "Gift deleted",

@@ -1,8 +1,8 @@
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import Image from "next/image";
 import { FestiveEvent } from "../../entities";
-import { apiFetch } from "../../utils/api";
+import { apiFetch, resolveApiUrl } from "../../utils/api";
 import { useAuth } from "../../utils/authContext";
 
 interface ParticipantGift {
@@ -80,6 +80,9 @@ export default function FestiveEventPage() {
   const [giftForm, setGiftForm] = useState<GiftFormState>(initialGiftFormState);
   const [giftFormError, setGiftFormError] = useState<string | null>(null);
   const [isSubmittingGift, setIsSubmittingGift] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
+  const [imageFileName, setImageFileName] = useState<string | null>(null);
 
   const extractErrorMessage = async (
     response: Response,
@@ -256,6 +259,12 @@ export default function FestiveEventPage() {
     setActionError(null);
     setGiftFormError(null);
     setGiftForm(initialGiftFormState);
+    if (imagePreviewUrl?.startsWith("blob:")) {
+      URL.revokeObjectURL(imagePreviewUrl);
+    }
+    setImageFile(null);
+    setImagePreviewUrl(null);
+    setImageFileName(null);
     setSelectedParticipant(participant);
     setIsGiftModalOpen(true);
   };
@@ -264,6 +273,12 @@ export default function FestiveEventPage() {
     setIsGiftModalOpen(false);
     setSelectedParticipant(null);
     setGiftForm(initialGiftFormState);
+    if (imagePreviewUrl?.startsWith("blob:")) {
+      URL.revokeObjectURL(imagePreviewUrl);
+    }
+    setImageFile(null);
+    setImagePreviewUrl(null);
+    setImageFileName(null);
     setGiftFormError(null);
   };
 
@@ -275,6 +290,57 @@ export default function FestiveEventPage() {
       ...prev,
       [field]: value,
     }));
+  };
+
+  const handleGiftImageFileChange = async (
+    event: ChangeEvent<HTMLInputElement>,
+  ) => {
+    const selectedFile = event.target.files?.[0];
+
+    if (!selectedFile) {
+      if (imagePreviewUrl?.startsWith("blob:")) {
+        URL.revokeObjectURL(imagePreviewUrl);
+      }
+      setImageFile(null);
+      setImagePreviewUrl(null);
+      setImageFileName(null);
+      return;
+    }
+
+    if (!selectedFile.type.startsWith("image/")) {
+      setGiftFormError("Le fichier selectionne doit etre une image.");
+      setImageFile(null);
+      setImagePreviewUrl(null);
+      setImageFileName(null);
+      return;
+    }
+
+    const maxFileSizeInBytes = 8 * 1024 * 1024;
+    if (selectedFile.size > maxFileSizeInBytes) {
+      setGiftFormError("L'image est trop lourde (maximum 8 Mo).");
+      setImageFile(null);
+      setImagePreviewUrl(null);
+      setImageFileName(null);
+      return;
+    }
+
+    if (imagePreviewUrl?.startsWith("blob:")) {
+      URL.revokeObjectURL(imagePreviewUrl);
+    }
+
+    setImageFile(selectedFile);
+    setImagePreviewUrl(URL.createObjectURL(selectedFile));
+    setImageFileName(selectedFile.name);
+    setGiftFormError(null);
+  };
+
+  const removeSelectedImageFile = () => {
+    if (imagePreviewUrl?.startsWith("blob:")) {
+      URL.revokeObjectURL(imagePreviewUrl);
+    }
+    setImageFile(null);
+    setImagePreviewUrl(null);
+    setImageFileName(null);
   };
 
   const handleCreateGift = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -294,22 +360,28 @@ export default function FestiveEventPage() {
     setGiftFormError(null);
     setIsSubmittingGift(true);
 
+    const imageUrlFromInput = giftForm.image_url.trim();
+    const formData = new FormData();
+    formData.append("title", title);
+    formData.append("description", giftForm.description.trim());
+    formData.append("product_link", giftForm.product_link.trim());
+    formData.append("id_wishing_user", String(selectedParticipant.id));
+    formData.append("is_offered", "false");
+    formData.append("multiple_gifters", "false");
+    formData.append("id_author_user", String(currentUserId));
+
+    if (imageUrlFromInput) {
+      formData.append("image_url", imageUrlFromInput);
+    }
+
+    if (imageFile) {
+      formData.append("image", imageFile);
+    }
+
     try {
       const response = await apiFetch("/api/v1/gifts", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          title,
-          description: giftForm.description.trim() || null,
-          image_url: giftForm.image_url.trim() || null,
-          product_link: giftForm.product_link.trim() || null,
-          id_wishing_user: selectedParticipant.id,
-          is_offered: false,
-          multiple_gifters: false,
-          id_author_user: currentUserId,
-        }),
+        body: formData,
       });
 
       if (!response.ok) {
@@ -343,7 +415,7 @@ export default function FestiveEventPage() {
         title: body.data.title ?? title,
         description:
           body.data.description ?? (giftForm.description.trim() || null),
-        image_url: body.data.image_url ?? (giftForm.image_url.trim() || null),
+        image_url: body.data.image_url ?? (imageUrlFromInput || null),
         product_link:
           body.data.product_link ?? (giftForm.product_link.trim() || null),
         is_offered: body.data.is_offered ?? false,
@@ -525,10 +597,11 @@ export default function FestiveEventPage() {
                           )}
                           {gift.image_url && (
                             <Image
-                              src={gift.image_url}
+                              src={resolveApiUrl(gift.image_url)}
                               alt={gift.title}
                               width={128}
                               height={128}
+                              unoptimized
                               className="mt-2 h-32 w-32 object-cover rounded-md border border-orange-200"
                             />
                           )}
@@ -611,7 +684,7 @@ export default function FestiveEventPage() {
       </section>
       {isGiftModalOpen && selectedParticipant && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-lg rounded-lg bg-white p-5 shadow-xl">
+          <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-lg bg-white p-5 shadow-xl">
             <h3 className="text-xl font-semibold text-gray-900">
               {selectedParticipant.id !== currentUserId
                 ? `Proposer une idee pour ${selectedParticipant.name}`
@@ -670,6 +743,48 @@ export default function FestiveEventPage() {
                   placeholder="https://..."
                 />
               </label>
+              <label className="block text-sm text-gray-700">
+                Importer une image
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(event) => {
+                    void handleGiftImageFileChange(event);
+                  }}
+                  className="mt-1 block w-full text-sm text-gray-900 file:mr-3 file:rounded file:border-0 file:bg-orange-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-orange-900 hover:file:bg-orange-200"
+                />
+              </label>
+              <p className="text-xs text-gray-500">
+                Vous pouvez saisir une URL ou importer un fichier local. Si les
+                deux sont renseignes, le fichier importe sera utilise.
+              </p>
+              {imageFileName && (
+                <div className="rounded border border-orange-200 bg-orange-50 p-2 text-sm text-gray-700">
+                  <p>Image importee: {imageFileName}</p>
+                  <button
+                    type="button"
+                    onClick={removeSelectedImageFile}
+                    className="mt-1 text-amber-700 hover:underline"
+                  >
+                    Retirer l&apos;image importee
+                  </button>
+                </div>
+              )}
+              {(imagePreviewUrl || giftForm.image_url.trim()) && (
+                <div>
+                  <p className="mb-1 text-xs text-gray-500">Apercu image</p>
+                  <Image
+                    src={resolveApiUrl(
+                      imagePreviewUrl ?? giftForm.image_url.trim(),
+                    )}
+                    alt="Apercu du cadeau"
+                    width={112}
+                    height={112}
+                    unoptimized
+                    className="h-28 w-28 rounded-md border border-orange-200 object-cover"
+                  />
+                </div>
+              )}
               {giftFormError && (
                 <p className="text-sm text-red-600">{giftFormError}</p>
               )}
