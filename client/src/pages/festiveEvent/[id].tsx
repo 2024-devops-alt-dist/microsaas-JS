@@ -22,6 +22,20 @@ interface EventParticipant {
   gifts: ParticipantGift[];
 }
 
+interface GiftFormState {
+  title: string;
+  description: string;
+  image_url: string;
+  product_link: string;
+}
+
+const initialGiftFormState: GiftFormState = {
+  title: "",
+  description: "",
+  image_url: "",
+  product_link: "",
+};
+
 function dedupeParticipantGifts(
   sourceParticipants: EventParticipant[],
 ): EventParticipant[] {
@@ -30,7 +44,9 @@ function dedupeParticipantGifts(
     const uniqueGifts = participant.gifts
       .map((gift) => ({
         ...gift,
-        offering_user_ids: gift.offering_user_ids ?? [],
+        offering_user_ids: (gift.offering_user_ids ?? [])
+          .map((offeringUserId) => Number(offeringUserId))
+          .filter((offeringUserId) => Number.isFinite(offeringUserId)),
       }))
       .filter((gift) => {
         if (seenGiftIds.has(gift.id)) {
@@ -58,6 +74,27 @@ export default function FestiveEventPage() {
   const [updatingGiftIds, setUpdatingGiftIds] = useState<Set<number>>(
     new Set(),
   );
+  const [isGiftModalOpen, setIsGiftModalOpen] = useState(false);
+  const [selectedParticipant, setSelectedParticipant] =
+    useState<EventParticipant | null>(null);
+  const [giftForm, setGiftForm] = useState<GiftFormState>(initialGiftFormState);
+  const [giftFormError, setGiftFormError] = useState<string | null>(null);
+  const [isSubmittingGift, setIsSubmittingGift] = useState(false);
+
+  const extractErrorMessage = async (
+    response: Response,
+    fallbackMessage: string,
+  ) => {
+    try {
+      const body = (await response.json()) as {
+        message?: string;
+        msg?: string;
+      };
+      return body.message ?? body.msg ?? fallbackMessage;
+    } catch {
+      return fallbackMessage;
+    }
+  };
 
   const handleToggleGiftOffered = async (
     participantId: number,
@@ -86,7 +123,12 @@ export default function FestiveEventPage() {
       );
 
       if (!response.ok) {
-        throw new Error("Unable to update offered status");
+        throw new Error(
+          await extractErrorMessage(
+            response,
+            "Impossible de modifier le statut de ce cadeau.",
+          ),
+        );
       }
 
       const body = (await response.json()) as {
@@ -115,14 +157,226 @@ export default function FestiveEventPage() {
           };
         }),
       );
-    } catch {
-      setActionError("Impossible de modifier le statut de ce cadeau.");
+    } catch (error) {
+      setActionError(
+        error instanceof Error
+          ? error.message
+          : "Impossible de modifier le statut de ce cadeau.",
+      );
     } finally {
       setUpdatingGiftIds((prev) => {
         const next = new Set(prev);
         next.delete(giftId);
         return next;
       });
+    }
+  };
+
+  const handleToggleMultipleGifters = async (
+    participantId: number,
+    giftId: number,
+    currentValue: boolean,
+  ) => {
+    if (!token) {
+      setActionError("Vous devez etre connecte pour modifier ce statut.");
+      return;
+    }
+
+    setActionError(null);
+    const nextMultipleGifters = !currentValue;
+    setUpdatingGiftIds((prev) => new Set(prev).add(giftId));
+
+    try {
+      const response = await apiFetch(
+        `/api/v1/gifts/${giftId}/toggle-multiple-gifters`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ multiple_gifters: nextMultipleGifters }),
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          await extractErrorMessage(
+            response,
+            "Impossible de modifier le mode cadeau commun.",
+          ),
+        );
+      }
+
+      const body = (await response.json()) as {
+        data?: { multiple_gifters?: boolean };
+      };
+      const updatedMultipleGifters =
+        body.data?.multiple_gifters ?? nextMultipleGifters;
+
+      setParticipants((prev) =>
+        prev.map((participant) => {
+          if (participant.id !== participantId) {
+            return participant;
+          }
+
+          return {
+            ...participant,
+            gifts: participant.gifts.map((gift) =>
+              gift.id === giftId
+                ? {
+                    ...gift,
+                    multiple_gifters: updatedMultipleGifters,
+                  }
+                : gift,
+            ),
+          };
+        }),
+      );
+    } catch (error) {
+      setActionError(
+        error instanceof Error
+          ? error.message
+          : "Impossible de modifier le mode cadeau commun.",
+      );
+    } finally {
+      setUpdatingGiftIds((prev) => {
+        const next = new Set(prev);
+        next.delete(giftId);
+        return next;
+      });
+    }
+  };
+
+  const openGiftModal = (participant: EventParticipant) => {
+    if (!token || currentUserId === null) {
+      setActionError("Vous devez etre connecte pour proposer un cadeau.");
+      return;
+    }
+
+    setActionError(null);
+    setGiftFormError(null);
+    setGiftForm(initialGiftFormState);
+    setSelectedParticipant(participant);
+    setIsGiftModalOpen(true);
+  };
+
+  const closeGiftModal = () => {
+    setIsGiftModalOpen(false);
+    setSelectedParticipant(null);
+    setGiftForm(initialGiftFormState);
+    setGiftFormError(null);
+  };
+
+  const handleGiftFormFieldChange = (
+    field: keyof GiftFormState,
+    value: string,
+  ) => {
+    setGiftForm((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  const handleCreateGift = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!selectedParticipant || currentUserId === null) {
+      setGiftFormError("Participant introuvable.");
+      return;
+    }
+
+    const title = giftForm.title.trim();
+    if (!title) {
+      setGiftFormError("Le titre du cadeau est requis.");
+      return;
+    }
+
+    setGiftFormError(null);
+    setIsSubmittingGift(true);
+
+    try {
+      const response = await apiFetch("/api/v1/gifts", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title,
+          description: giftForm.description.trim() || null,
+          image_url: giftForm.image_url.trim() || null,
+          product_link: giftForm.product_link.trim() || null,
+          id_wishing_user: selectedParticipant.id,
+          is_offered: false,
+          multiple_gifters: false,
+          id_author_user: currentUserId,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          await extractErrorMessage(
+            response,
+            "Impossible d'ajouter cette idee de cadeau.",
+          ),
+        );
+      }
+
+      const body = (await response.json()) as {
+        data?: {
+          id: number;
+          title?: string;
+          description?: string | null;
+          image_url?: string | null;
+          product_link?: string | null;
+          is_offered?: boolean;
+          multiple_gifters?: boolean;
+          offering_user_ids?: number[];
+        };
+      };
+
+      if (!body.data) {
+        throw new Error("Reponse invalide lors de la creation du cadeau.");
+      }
+
+      const createdGift: ParticipantGift = {
+        id: Number(body.data.id),
+        title: body.data.title ?? title,
+        description:
+          body.data.description ?? (giftForm.description.trim() || null),
+        image_url: body.data.image_url ?? (giftForm.image_url.trim() || null),
+        product_link:
+          body.data.product_link ?? (giftForm.product_link.trim() || null),
+        is_offered: body.data.is_offered ?? false,
+        multiple_gifters: body.data.multiple_gifters ?? false,
+        offering_user_ids: Array.isArray(body.data.offering_user_ids)
+          ? body.data.offering_user_ids
+              .map((offeringUserId) => Number(offeringUserId))
+              .filter((offeringUserId) => Number.isFinite(offeringUserId))
+          : [],
+      };
+
+      setParticipants((prev) =>
+        prev.map((participant) => {
+          if (participant.id !== selectedParticipant.id) {
+            return participant;
+          }
+
+          return {
+            ...participant,
+            gifts: [...participant.gifts, createdGift],
+          };
+        }),
+      );
+
+      closeGiftModal();
+    } catch (error) {
+      setGiftFormError(
+        error instanceof Error
+          ? error.message
+          : "Impossible d'ajouter cette idee de cadeau.",
+      );
+    } finally {
+      setIsSubmittingGift(false);
     }
   };
 
@@ -135,8 +389,9 @@ export default function FestiveEventPage() {
     try {
       const payload = token.split(".")[1];
       const normalized = payload.replace(/-/g, "+").replace(/_/g, "/");
-      const decoded = JSON.parse(atob(normalized)) as { id?: number };
-      setCurrentUserId(decoded.id ?? null);
+      const decoded = JSON.parse(atob(normalized)) as { id?: unknown };
+      const parsedUserId = Number(decoded.id);
+      setCurrentUserId(Number.isFinite(parsedUserId) ? parsedUserId : null);
     } catch {
       setCurrentUserId(null);
     }
@@ -227,7 +482,23 @@ export default function FestiveEventPage() {
           <ul className="bg-white border border-orange-200 rounded-lg divide-y divide-orange-100">
             {participants.map((participant) => (
               <li key={participant.id} className="px-4 py-3 text-gray-800">
-                <p className="font-semibold">{participant.name}</p>
+                <p className="font-semibold">
+                  {participant.name}
+                  {eventData.id_owner === participant.id && (
+                    <span title="Organisateur" className="ml-1">
+                      👑
+                    </span>
+                  )}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => openGiftModal(participant)}
+                  className="mt-2 rounded border border-orange-200 bg-white px-2 py-1 text-left text-sm text-gray-800 transition hover:bg-orange-100"
+                >
+                  {participant.id !== currentUserId
+                    ? "Proposer une idée de cadeau"
+                    : "Ajouter une nouvelle idée de cadeau"}
+                </button>
                 {participant.gifts.length === 0 ? (
                   <p className="text-sm text-gray-500 mt-1">
                     Aucun cadeau souhaite.
@@ -296,17 +567,36 @@ export default function FestiveEventPage() {
                                   Cadeau commun:{" "}
                                   {gift.multiple_gifters ? "Oui" : "Non"}
                                 </p>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    void handleToggleMultipleGifters(
+                                      participant.id,
+                                      gift.id,
+                                      gift.multiple_gifters,
+                                    )
+                                  }
+                                  disabled={updatingGiftIds.has(gift.id)}
+                                  className="rounded border border-orange-200 bg-white px-2 py-1 text-left text-sm text-gray-800 transition hover:bg-orange-100 disabled:cursor-not-allowed disabled:opacity-60"
+                                >
+                                  {gift.multiple_gifters
+                                    ? "Desactiver offrir à plusieurs"
+                                    : "Offrir à plusieurs"}
+                                  {updatingGiftIds.has(gift.id) ? "..." : ""}
+                                </button>
                               </>
                             )}
                             {gift.product_link && (
-                              <a
-                                href={gift.product_link}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="text-amber-700 hover:underline"
-                              >
-                                Voir le lien du cadeau
-                              </a>
+                              <p>
+                                <a
+                                  href={gift.product_link}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="text-amber-700 hover:underline"
+                                >
+                                  Voir le lien du cadeau
+                                </a>
+                              </p>
                             )}
                           </div>
                         </li>
@@ -319,6 +609,91 @@ export default function FestiveEventPage() {
           </ul>
         )}
       </section>
+      {isGiftModalOpen && selectedParticipant && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-lg rounded-lg bg-white p-5 shadow-xl">
+            <h3 className="text-xl font-semibold text-gray-900">
+              {selectedParticipant.id !== currentUserId
+                ? `Proposer une idee pour ${selectedParticipant.name}`
+                : "Ajouter une nouvelle idee de cadeau"}
+            </h3>
+            <form className="mt-4 space-y-3" onSubmit={handleCreateGift}>
+              <label className="block text-sm text-gray-700">
+                Titre
+                <input
+                  type="text"
+                  value={giftForm.title}
+                  onChange={(event) =>
+                    handleGiftFormFieldChange("title", event.target.value)
+                  }
+                  className="mt-1 w-full rounded border border-orange-200 px-3 py-2 text-sm text-gray-900 focus:border-orange-400 focus:outline-none"
+                  placeholder="Ex: Livre de recettes"
+                  required
+                />
+              </label>
+              <label className="block text-sm text-gray-700">
+                Description
+                <textarea
+                  value={giftForm.description}
+                  onChange={(event) =>
+                    handleGiftFormFieldChange("description", event.target.value)
+                  }
+                  className="mt-1 w-full rounded border border-orange-200 px-3 py-2 text-sm text-gray-900 focus:border-orange-400 focus:outline-none"
+                  rows={3}
+                  placeholder="Quelques details sur cette idee"
+                />
+              </label>
+              <label className="block text-sm text-gray-700">
+                Lien produit
+                <input
+                  type="url"
+                  value={giftForm.product_link}
+                  onChange={(event) =>
+                    handleGiftFormFieldChange(
+                      "product_link",
+                      event.target.value,
+                    )
+                  }
+                  className="mt-1 w-full rounded border border-orange-200 px-3 py-2 text-sm text-gray-900 focus:border-orange-400 focus:outline-none"
+                  placeholder="https://..."
+                />
+              </label>
+              <label className="block text-sm text-gray-700">
+                URL image
+                <input
+                  type="url"
+                  value={giftForm.image_url}
+                  onChange={(event) =>
+                    handleGiftFormFieldChange("image_url", event.target.value)
+                  }
+                  className="mt-1 w-full rounded border border-orange-200 px-3 py-2 text-sm text-gray-900 focus:border-orange-400 focus:outline-none"
+                  placeholder="https://..."
+                />
+              </label>
+              {giftFormError && (
+                <p className="text-sm text-red-600">{giftFormError}</p>
+              )}
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={closeGiftModal}
+                  className="rounded border border-gray-300 px-3 py-2 text-sm text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-60"
+                  disabled={isSubmittingGift}
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  className="rounded border border-orange-300 bg-orange-100 px-3 py-2 text-sm font-medium text-orange-900 transition hover:bg-orange-200 disabled:cursor-not-allowed disabled:opacity-60"
+                  disabled={isSubmittingGift}
+                >
+                  {isSubmittingGift ? "Envoi..." : "Enregistrer le cadeau"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

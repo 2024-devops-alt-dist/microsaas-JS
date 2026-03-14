@@ -90,9 +90,13 @@ export const giftsController = {
     try {
       const { id } = req.params;
       const { is_offered } = req.body as { is_offered?: unknown };
-      const userId = req.user?.id;
+      const rawUserId = req.user?.id;
+      const userId =
+        typeof rawUserId === "number"
+          ? rawUserId
+          : Number.parseInt(String(rawUserId), 10);
 
-      if (!userId) {
+      if (!Number.isFinite(userId)) {
         return res.status(401).json({ message: "Unauthorized" });
       }
 
@@ -170,6 +174,54 @@ export const giftsController = {
           offering_user_ids: refreshedOfferingUserIds,
         },
       });
+    } catch (error) {
+      res.status(500).json({ msg: error, message: "y a une erreur" });
+    }
+  },
+
+  toggleMultipleGifters: async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const { id } = req.params;
+      const { multiple_gifters } = req.body as { multiple_gifters?: unknown };
+      const rawUserId = req.user?.id;
+      const userId =
+        typeof rawUserId === "number"
+          ? rawUserId
+          : Number.parseInt(String(rawUserId), 10);
+
+      if (!Number.isFinite(userId)) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      if (typeof multiple_gifters !== "boolean") {
+        return res
+          .status(400)
+          .json({ message: "multiple_gifters must be a boolean" });
+      }
+
+      const giftId = parseInt(id, 10);
+      const currentGift = await giftsService.getById(giftId);
+
+      if (!currentGift) {
+        return res.status(404).json({ message: "Gift not found" });
+      }
+
+      if (currentGift.id_wishing_user === userId) {
+        return res.status(403).json({
+          message: "Gift owner cannot change multiple gifters",
+        });
+      }
+
+      const gift = await giftsService.updateMultipleGiftersStatus(
+        giftId,
+        multiple_gifters,
+      );
+
+      if (!gift) {
+        return res.status(404).json({ message: "Gift not found" });
+      }
+
+      res.status(200).json({ data: gift });
     } catch (error) {
       res.status(500).json({ msg: error, message: "y a une erreur" });
     }

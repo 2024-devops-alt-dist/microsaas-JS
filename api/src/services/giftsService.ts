@@ -82,6 +82,20 @@ export const giftsService = {
     return data.rows[0];
   },
 
+  updateMultipleGiftersStatus: async (
+    id: number,
+    multiple_gifters: boolean,
+  ) => {
+    const data = await pool.query(
+      "UPDATE gifts SET multiple_gifters = $1 WHERE id = $2 RETURNING *",
+      [multiple_gifters, id],
+    );
+    if (data.rows.length === 0) {
+      return null;
+    }
+    return data.rows[0];
+  },
+
   getOfferingUserIds: async (giftId: number) => {
     const data = await pool.query(
       "SELECT id_user FROM users_gifts WHERE id_gift = $1 ORDER BY id_user ASC",

@@ -286,7 +286,36 @@ describe("Gifts Controller", () => {
       await giftsController.toggleOffered(req, mockResponse);
 
       expect(giftsService.removeOfferingUser).toHaveBeenCalledWith(1, 42);
-      expect(giftsService.updateOfferedStatus).toHaveBeenCalledWith(1, true);
+      expect(giftsService.updateOfferedStatus).toHaveBeenCalledWith(1, false);
+      expect(mockResponse.status).toHaveBeenCalledWith(200);
+    });
+
+    it("allows cancel when auth user id is a numeric string", async () => {
+      (giftsService.getById as jest.Mock).mockResolvedValue({
+        id: 1,
+        multiple_gifters: true,
+      });
+      (giftsService.getOfferingUserIds as jest.Mock)
+        .mockResolvedValueOnce([42, 9])
+        .mockResolvedValueOnce([9]);
+      (giftsService.removeOfferingUser as jest.Mock).mockResolvedValue(
+        undefined,
+      );
+      (giftsService.updateOfferedStatus as jest.Mock).mockResolvedValue({
+        id: 1,
+        is_offered: true,
+      });
+
+      const req = {
+        params: { id: "1" },
+        body: { is_offered: false },
+        user: { id: "42" },
+      } as unknown as AuthenticatedRequest;
+
+      await giftsController.toggleOffered(req, mockResponse);
+
+      expect(giftsService.removeOfferingUser).toHaveBeenCalledWith(1, 42);
+      expect(giftsService.updateOfferedStatus).toHaveBeenCalledWith(1, false);
       expect(mockResponse.status).toHaveBeenCalledWith(200);
     });
 
@@ -309,6 +338,73 @@ describe("Gifts Controller", () => {
       expect(mockResponse.status).toHaveBeenCalledWith(403);
       expect(mockResponse.json).toHaveBeenCalledWith({
         message: "Only users currently offering this gift can cancel",
+      });
+    });
+  });
+
+  describe("toggleMultipleGifters", () => {
+    it("updates multiple_gifters and returns gift", async () => {
+      const gift = { id: 1, id_wishing_user: 9, multiple_gifters: true };
+      (giftsService.getById as jest.Mock).mockResolvedValue({
+        id: 1,
+        id_wishing_user: 9,
+      });
+      (giftsService.updateMultipleGiftersStatus as jest.Mock).mockResolvedValue(
+        gift,
+      );
+
+      const req = {
+        params: { id: "1" },
+        body: { multiple_gifters: true },
+        user: { id: 42 },
+      } as unknown as AuthenticatedRequest;
+
+      await giftsController.toggleMultipleGifters(req, mockResponse);
+
+      expect(giftsService.getById).toHaveBeenCalledWith(1);
+      expect(giftsService.updateMultipleGiftersStatus).toHaveBeenCalledWith(
+        1,
+        true,
+      );
+      expect(mockResponse.status).toHaveBeenCalledWith(200);
+      expect(mockResponse.json).toHaveBeenCalledWith({ data: gift });
+    });
+
+    it("returns 400 when multiple_gifters is not a boolean", async () => {
+      const req = {
+        params: { id: "1" },
+        body: { multiple_gifters: "true" },
+        user: { id: 42 },
+      } as unknown as AuthenticatedRequest;
+
+      await giftsController.toggleMultipleGifters(req, mockResponse);
+
+      expect(giftsService.getById).not.toHaveBeenCalled();
+      expect(giftsService.updateMultipleGiftersStatus).not.toHaveBeenCalled();
+      expect(mockResponse.status).toHaveBeenCalledWith(400);
+      expect(mockResponse.json).toHaveBeenCalledWith({
+        message: "multiple_gifters must be a boolean",
+      });
+    });
+
+    it("returns 403 when user is the gift owner", async () => {
+      (giftsService.getById as jest.Mock).mockResolvedValue({
+        id: 1,
+        id_wishing_user: 42,
+      });
+
+      const req = {
+        params: { id: "1" },
+        body: { multiple_gifters: true },
+        user: { id: 42 },
+      } as unknown as AuthenticatedRequest;
+
+      await giftsController.toggleMultipleGifters(req, mockResponse);
+
+      expect(giftsService.updateMultipleGiftersStatus).not.toHaveBeenCalled();
+      expect(mockResponse.status).toHaveBeenCalledWith(403);
+      expect(mockResponse.json).toHaveBeenCalledWith({
+        message: "Gift owner cannot change multiple gifters",
       });
     });
   });

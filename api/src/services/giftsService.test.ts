@@ -165,6 +165,29 @@ describe("Gifts Service", () => {
     });
   });
 
+  describe("updateMultipleGiftersStatus", () => {
+    it("updates multiple_gifters and returns updated gift", async () => {
+      const mockRow = { id: 1, multiple_gifters: true };
+      (pool.query as jest.Mock).mockResolvedValue({ rows: [mockRow] });
+
+      const result = await giftsService.updateMultipleGiftersStatus(1, true);
+
+      expect(pool.query).toHaveBeenCalledWith(
+        "UPDATE gifts SET multiple_gifters = $1 WHERE id = $2 RETURNING *",
+        [true, 1],
+      );
+      expect(result).toEqual(mockRow);
+    });
+
+    it("returns null when gift does not exist", async () => {
+      (pool.query as jest.Mock).mockResolvedValue({ rows: [] });
+
+      const result = await giftsService.updateMultipleGiftersStatus(999, true);
+
+      expect(result).toBeNull();
+    });
+  });
+
   describe("join table offering methods", () => {
     it("returns ordered offering user ids", async () => {
       (pool.query as jest.Mock).mockResolvedValue({
