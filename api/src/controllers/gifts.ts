@@ -300,9 +300,11 @@ export const giftsController = {
       }
 
       if (deleted.image_url) {
-        await deleteStoredGiftImage(deleted.image_url).catch((error) => {
+        try {
+          await deleteStoredGiftImage(deleted.image_url);
+        } catch (error) {
           console.error("Failed to delete gift image", error);
-        });
+        }
       }
 
       res.status(200).json({ message: "Gift deleted" });

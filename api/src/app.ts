@@ -18,7 +18,6 @@ const allowedOrigins = [
   ...configuredOrigins,
   FRONTEND_URL,
   `http://localhost:${FRONTEND_PORT}`,
-  "http://localhost:5173",
   "https://surprise-dusky-zeta.vercel.app",
 ].filter((origin): origin is string => Boolean(origin));
 
