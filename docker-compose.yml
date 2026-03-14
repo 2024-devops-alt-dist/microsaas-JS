@@ -30,6 +30,7 @@ services:
       PORT: ${API_PORT}
     volumes:
       - ./api:/app
+      - api_uploads:/app/uploads
       # we used to mount /app/node_modules here, but that hides
       # the deps installed during image build. keeping the container
       # node_modules avoids “cannot find module” errors.
@@ -45,3 +46,4 @@ services:
 
 volumes:
   surprise-backend-js:
+  api_uploads:

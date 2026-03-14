@@ -1,6 +1,8 @@
 import express from "express";
 import cors from "cors";
+import fs from "fs";
 import { env } from "process";
+import { uploadsDirectory } from "./config/uploads";
 
 const FRONTEND_PORT = env.FRONTEND_PORT || 5173;
 const FRONTEND_URL = env.FRONTEND_URL;
@@ -22,8 +24,11 @@ const allowedOrigins = [
 
 const app = express();
 
+fs.mkdirSync(uploadsDirectory, { recursive: true });
+
 // incoming JSON bodies need to be parsed or `req.body` will be undefined
 app.use(express.json());
+app.use("/uploads", express.static(uploadsDirectory));
 
 // CORS configuration: allow the dev frontend port and the deployed domain
 const corsOptions = {
@@ -34,15 +39,18 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 const version = "v1";
-const path = `/api/${version}`;
+const apiPath = `/api/${version}`;
 
 import { router as usersRoute } from "./routes/users";
-app.use(`${path}/users`, usersRoute);
+app.use(`${apiPath}/users`, usersRoute);
 
 import { router as authRoute } from "./routes/auth";
-app.use(`${path}/auth`, authRoute);
+app.use(`${apiPath}/auth`, authRoute);
 
 import { router as festiveEventRoute } from "./routes/festiveEvent";
-app.use(`${path}/festiveEvent`, festiveEventRoute);
+app.use(`${apiPath}/festiveEvent`, festiveEventRoute);
+
+import { router as giftsRoute } from "./routes/gifts";
+app.use(`${apiPath}/gifts`, giftsRoute);
 
 export default app;

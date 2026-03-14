@@ -294,7 +294,7 @@ async function usersEventsFixtures(db: ReturnType<typeof drizzle>) {
   await db.insert(usersEventTable).values(eighteenthUserEvent);
 
   const nineteenthUserEvent: typeof usersEventTable.$inferInsert = {
-    id_user: 2,
+    id_user: 3,
     id_event: 1,
   };
   await db.insert(usersEventTable).values(nineteenthUserEvent);
@@ -313,8 +313,7 @@ async function giftsFixtures(db: ReturnType<typeof drizzle>) {
     title: "Dealing with Dragons - Patricia C. Wrede",
     description:
       "Un roman géniale sur une princesse qui s'enfuit de chez elle pour se rendre chez les dragons",
-    image_url:
-      "https://images-na.ssl-images-amazon.com/images/I/51nqj8s9XlL._SX331_BO1,204,203,200_.jpg",
+    image_url: "",
     product_link:
       "https://www.amazon.fr/Dealing-Dragons-1-Patricia-Wrede/dp/0786948607/ref=sr_1_1?crid=3Q9Z5X8KZ2G9&keywords=dealing+with+dragons&qid=1700000000&sprefix=dealing+with+dragons%2Caps%2C123&sr=8-1",
     id_wishing_user: 1,
@@ -327,7 +326,7 @@ async function giftsFixtures(db: ReturnType<typeof drizzle>) {
   const secondGift: typeof giftsTable.$inferInsert = {
     title: "Switch 2",
     description: "La dernière version de la console Nintendo Switch",
-    image_url: "https://example.com/switch-2.jpg",
+    image_url: "",
     product_link: "https://www.nintendo.fr/Jeux/Nintendo-Switch-1280745.html",
     id_wishing_user: 2,
     is_offered: false,
@@ -339,7 +338,7 @@ async function giftsFixtures(db: ReturnType<typeof drizzle>) {
   const thirdGift: typeof giftsTable.$inferInsert = {
     title: "Chaussettes en laine",
     description: "Des chaussettes en laine pour garder les pieds au chaud",
-    image_url: "https://example.com/chaussettes-laine.jpg",
+    image_url: "",
     product_link:
       "https://www.amazon.fr/Chaussettes-Laine/dp/B07P6Y8Z5Z/ref=sr_1_1?crid=3Q9Z5X8KZ2G9&keywords=chaussettes+en+laine&qid=1700000000&sprefix=chaussettes+en+laine%2Caps%2C123&sr=8-1",
     id_wishing_user: 3,
@@ -352,7 +351,7 @@ async function giftsFixtures(db: ReturnType<typeof drizzle>) {
   const fourthGift: typeof giftsTable.$inferInsert = {
     title: "Coffret de thé",
     description: "Un coffret de thé pour les amateurs de thé",
-    image_url: "https://example.com/coffret-the.jpg",
+    image_url: "",
     product_link:
       "https://www.amazon.fr/Coffret-Thé/dp/B07P6Y8Z5Z/ref=sr_1_1?crid=3Q9Z5X8KZ2G9&keywords=coffret+de+thé&qid=1700000000&sprefix=coffret+de+thé%2Caps%2C123&sr=8-1",
     id_wishing_user: 4,
@@ -366,7 +365,7 @@ async function giftsFixtures(db: ReturnType<typeof drizzle>) {
     title: "Forêt mixte Dartmoor",
     description:
       "Le jeu de société qui suit le Forêt mixte classique, mais sur la lande du Dartmoor.",
-    image_url: "https://example.com/foret-mixte-dartmoor.jpg",
+    image_url: "",
     product_link:
       "https://www.amazon.fr/Forêt-Mixte-Dartmoor/dp/B07P6Y8Z5Z/ref=sr_1_1?crid=3Q9Z5X8KZ2G9&keywords=forêt+mixte+dartmoor&qid=1700000000&sprefix=forêt+mixte+dartmoor%2Caps%2C123&sr=8-1",
     id_wishing_user: 5,
@@ -379,7 +378,7 @@ async function giftsFixtures(db: ReturnType<typeof drizzle>) {
   const sixthGift: typeof giftsTable.$inferInsert = {
     title: "LEGO Botanical Collection - 10289",
     description: "Un set LEGO de collection botanique",
-    image_url: "https://example.com/lego-botanical-collection-10289.jpg",
+    image_url: "",
     product_link:
       "https://www.lego.com/fr-fr/product/botanical-collection-10289",
     id_wishing_user: 6,
@@ -392,7 +391,7 @@ async function giftsFixtures(db: ReturnType<typeof drizzle>) {
   const seventhGift: typeof giftsTable.$inferInsert = {
     title: "Dune Imperium Insurrection",
     description: "Le dernier jeu de la série Dune Imperium",
-    image_url: "https://example.com/dune-imperium-insurrection.jpg",
+    image_url: "",
     product_link:
       "https://www.amazon.fr/Dune-Imperium-Insurrection/dp/B07P6Y8Z5Z/ref=sr_1_1?crid=3Q9Z5X8KZ2G9&keywords=dune+imperium+insurrection&qid=1700000000&sprefix=dune+imperium+insurrection%2Caps%2C123&sr=8-1",
     id_wishing_user: 7,

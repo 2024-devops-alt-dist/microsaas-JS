@@ -23,6 +23,18 @@
       "when": 0,
       "tag": "0003_adorable_stepford_cuckoos",
       "breakpoints": false
+    },
+    {
+      "idx": 4,
+      "when": 0,
+      "tag": "0004_lively_jubilee",
+      "breakpoints": false
+    },
+    {
+      "idx": 5,
+      "when": 0,
+      "tag": "0005_users_gifts_join_table",
+      "breakpoints": false
     }
   ]
 }
