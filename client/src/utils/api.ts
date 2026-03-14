@@ -4,7 +4,19 @@ function getApiBaseUrl() {
   const configuredBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
   const port = process.env.NEXT_PUBLIC_API_PORT || "3000";
   const host = process.env.NEXT_PUBLIC_API_HOST || "localhost";
-  return configuredBaseUrl || `http://${host}:${port}`;
+  const fallbackBaseUrl = `http://${host}:${port}/api/v1`;
+  return (configuredBaseUrl || fallbackBaseUrl).replace(/\/$/, "");
+}
+
+function getApiUrlParts() {
+  const apiBaseUrl = new URL(getApiBaseUrl());
+  const apiBasePath = apiBaseUrl.pathname.replace(/\/$/, "");
+
+  return {
+    origin: apiBaseUrl.origin,
+    apiBasePath,
+    apiBaseUrl: apiBaseUrl.toString(),
+  };
 }
 
 export function resolveApiUrl(input: string): string {
@@ -12,8 +24,23 @@ export function resolveApiUrl(input: string): string {
     return input;
   }
 
-  const baseUrl = getApiBaseUrl();
-  return input.startsWith("/") ? `${baseUrl}${input}` : `${baseUrl}/${input}`;
+  const { origin, apiBasePath, apiBaseUrl } = getApiUrlParts();
+
+  if (input.startsWith("/uploads/")) {
+    return `${origin}${input}`;
+  }
+
+  if (input.startsWith("/")) {
+    if (apiBasePath && input.startsWith(`${apiBasePath}/`)) {
+      return `${origin}${input}`;
+    }
+
+    return apiBasePath
+      ? `${origin}${apiBasePath}${input}`
+      : `${origin}${input}`;
+  }
+
+  return new URL(input, `${apiBaseUrl}/`).toString();
 }
 
 export async function apiFetch(
@@ -32,17 +59,15 @@ export async function apiFetch(
   // hit the frontend server instead of the backend. to fix that we
   // compute an absolute URL using an env var that can be overridden in
   // docker-compose or .env.local.
-  const baseUrl = getApiBaseUrl();
-
   // if the caller already provided a full URL we leave it alone; otherwise
   // prepend the base.
   let url: string;
   if (typeof input === "string") {
-    url = input.startsWith("http") ? input : `${baseUrl}${input}`;
+    url = input.startsWith("http") ? input : resolveApiUrl(input);
   } else {
     // Request object – clone with absolute URL if necessary
     const orig = input as Request;
-    url = orig.url.startsWith("http") ? orig.url : `${baseUrl}${orig.url}`;
+    url = orig.url.startsWith("http") ? orig.url : resolveApiUrl(orig.url);
   }
 
   return fetch(url, { ...init, headers });
