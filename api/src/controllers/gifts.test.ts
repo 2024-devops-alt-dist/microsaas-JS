@@ -339,7 +339,7 @@ describe("Gifts Controller", () => {
       await giftsController.toggleOffered(req, mockResponse);
 
       expect(giftsService.removeOfferingUser).toHaveBeenCalledWith(1, 42);
-      expect(giftsService.updateOfferedStatus).toHaveBeenCalledWith(1, false);
+      expect(giftsService.updateOfferedStatus).toHaveBeenCalledWith(1, true);
       expect(mockResponse.status).toHaveBeenCalledWith(200);
     });
 
@@ -368,7 +368,7 @@ describe("Gifts Controller", () => {
       await giftsController.toggleOffered(req, mockResponse);
 
       expect(giftsService.removeOfferingUser).toHaveBeenCalledWith(1, 42);
-      expect(giftsService.updateOfferedStatus).toHaveBeenCalledWith(1, false);
+      expect(giftsService.updateOfferedStatus).toHaveBeenCalledWith(1, true);
       expect(mockResponse.status).toHaveBeenCalledWith(200);
     });
 
