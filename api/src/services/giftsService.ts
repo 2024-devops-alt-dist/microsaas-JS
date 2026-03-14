@@ -71,6 +71,39 @@ export const giftsService = {
     return data.rows[0];
   },
 
+  updateOfferedStatus: async (id: number, is_offered: boolean) => {
+    const data = await pool.query(
+      "UPDATE gifts SET is_offered = $1 WHERE id = $2 RETURNING *",
+      [is_offered, id],
+    );
+    if (data.rows.length === 0) {
+      return null;
+    }
+    return data.rows[0];
+  },
+
+  getOfferingUserIds: async (giftId: number) => {
+    const data = await pool.query(
+      "SELECT id_user FROM users_gifts WHERE id_gift = $1 ORDER BY id_user ASC",
+      [giftId],
+    );
+    return data.rows.map((row) => row.id_user as number);
+  },
+
+  addOfferingUser: async (giftId: number, userId: number) => {
+    await pool.query(
+      "INSERT INTO users_gifts (id_user, id_gift) VALUES ($1, $2) ON CONFLICT DO NOTHING",
+      [userId, giftId],
+    );
+  },
+
+  removeOfferingUser: async (giftId: number, userId: number) => {
+    await pool.query(
+      "DELETE FROM users_gifts WHERE id_user = $1 AND id_gift = $2",
+      [userId, giftId],
+    );
+  },
+
   delete: async (id: number) => {
     const data = await pool.query(
       "DELETE FROM gifts WHERE id = $1 RETURNING *",

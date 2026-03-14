@@ -45,4 +45,7 @@ app.use(`${path}/auth`, authRoute);
 import { router as festiveEventRoute } from "./routes/festiveEvent";
 app.use(`${path}/festiveEvent`, festiveEventRoute);
 
+import { router as giftsRoute } from "./routes/gifts";
+app.use(`${path}/gifts`, giftsRoute);
+
 export default app;

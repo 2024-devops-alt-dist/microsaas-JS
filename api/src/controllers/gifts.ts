@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { giftsService } from "../services/giftsService";
+import { AuthenticatedRequest } from "../middleware/auth";
 
 export const giftsController = {
   getAll: async (req: Request, res: Response) => {
@@ -80,6 +81,95 @@ export const giftsController = {
         return res.status(404).json({ message: "Gift not found" });
       }
       res.status(200).json({ data: gift });
+    } catch (error) {
+      res.status(500).json({ msg: error, message: "y a une erreur" });
+    }
+  },
+
+  toggleOffered: async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const { id } = req.params;
+      const { is_offered } = req.body as { is_offered?: unknown };
+      const userId = req.user?.id;
+
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      if (typeof is_offered !== "boolean") {
+        return res
+          .status(400)
+          .json({ message: "is_offered must be a boolean" });
+      }
+
+      const giftId = parseInt(id, 10);
+      const currentGift = await giftsService.getById(giftId);
+
+      if (!currentGift) {
+        return res.status(404).json({ message: "Gift not found" });
+      }
+
+      const offeringUserIds = await giftsService.getOfferingUserIds(giftId);
+      const isCurrentUserOffering = offeringUserIds.includes(userId);
+
+      if (is_offered) {
+        if (
+          !currentGift.multiple_gifters &&
+          offeringUserIds.length > 0 &&
+          !isCurrentUserOffering
+        ) {
+          return res.status(403).json({
+            message: "This gift is already offered by another user",
+          });
+        }
+
+        if (!isCurrentUserOffering) {
+          await giftsService.addOfferingUser(giftId, userId);
+        }
+
+        const refreshedOfferingUserIds =
+          await giftsService.getOfferingUserIds(giftId);
+        const gift = await giftsService.updateOfferedStatus(
+          giftId,
+          refreshedOfferingUserIds.length > 0,
+        );
+
+        if (!gift) {
+          return res.status(404).json({ message: "Gift not found" });
+        }
+
+        return res.status(200).json({
+          data: {
+            ...gift,
+            offering_user_ids: refreshedOfferingUserIds,
+          },
+        });
+      }
+
+      if (!isCurrentUserOffering) {
+        return res.status(403).json({
+          message: "Only users currently offering this gift can cancel",
+        });
+      }
+
+      await giftsService.removeOfferingUser(giftId, userId);
+      const refreshedOfferingUserIds =
+        await giftsService.getOfferingUserIds(giftId);
+      const gift = await giftsService.updateOfferedStatus(
+        giftId,
+        refreshedOfferingUserIds.length > 0,
+      );
+
+      if (!gift) {
+        return res.status(404).json({ message: "Gift not found" });
+      }
+
+      res.status(200).json({
+        data: {
+          ...gift,
+          offering_user_ids: refreshedOfferingUserIds,
+        },
+      });
     } catch (error) {
       res.status(500).json({ msg: error, message: "y a une erreur" });
     }

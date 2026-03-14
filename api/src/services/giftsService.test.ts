@@ -141,4 +141,65 @@ describe("Gifts Service", () => {
       expect(result).toBeNull();
     });
   });
+
+  describe("updateOfferedStatus", () => {
+    it("updates is_offered and returns updated gift", async () => {
+      const mockRow = { id: 1, is_offered: true };
+      (pool.query as jest.Mock).mockResolvedValue({ rows: [mockRow] });
+
+      const result = await giftsService.updateOfferedStatus(1, true);
+
+      expect(pool.query).toHaveBeenCalledWith(
+        "UPDATE gifts SET is_offered = $1 WHERE id = $2 RETURNING *",
+        [true, 1],
+      );
+      expect(result).toEqual(mockRow);
+    });
+
+    it("returns null when gift does not exist", async () => {
+      (pool.query as jest.Mock).mockResolvedValue({ rows: [] });
+
+      const result = await giftsService.updateOfferedStatus(999, true);
+
+      expect(result).toBeNull();
+    });
+  });
+
+  describe("join table offering methods", () => {
+    it("returns ordered offering user ids", async () => {
+      (pool.query as jest.Mock).mockResolvedValue({
+        rows: [{ id_user: 2 }, { id_user: 9 }],
+      });
+
+      const result = await giftsService.getOfferingUserIds(3);
+
+      expect(pool.query).toHaveBeenCalledWith(
+        "SELECT id_user FROM users_gifts WHERE id_gift = $1 ORDER BY id_user ASC",
+        [3],
+      );
+      expect(result).toEqual([2, 9]);
+    });
+
+    it("adds offering user with conflict-safe insert", async () => {
+      (pool.query as jest.Mock).mockResolvedValue({ rows: [] });
+
+      await giftsService.addOfferingUser(7, 4);
+
+      expect(pool.query).toHaveBeenCalledWith(
+        "INSERT INTO users_gifts (id_user, id_gift) VALUES ($1, $2) ON CONFLICT DO NOTHING",
+        [4, 7],
+      );
+    });
+
+    it("removes offering user row", async () => {
+      (pool.query as jest.Mock).mockResolvedValue({ rows: [] });
+
+      await giftsService.removeOfferingUser(7, 4);
+
+      expect(pool.query).toHaveBeenCalledWith(
+        "DELETE FROM users_gifts WHERE id_user = $1 AND id_gift = $2",
+        [4, 7],
+      );
+    });
+  });
 });

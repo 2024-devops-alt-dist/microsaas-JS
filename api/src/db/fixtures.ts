@@ -294,7 +294,7 @@ async function usersEventsFixtures(db: ReturnType<typeof drizzle>) {
   await db.insert(usersEventTable).values(eighteenthUserEvent);
 
   const nineteenthUserEvent: typeof usersEventTable.$inferInsert = {
-    id_user: 2,
+    id_user: 3,
     id_event: 1,
   };
   await db.insert(usersEventTable).values(nineteenthUserEvent);
